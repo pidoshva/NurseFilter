@@ -40,22 +40,19 @@ class DataModel:
                 return None
 
             # Extract the two data frames
-            database_data = self.data_frames[0].copy()
-            medicaid_data = self.data_frames[1].copy()
+            database_data = self.data_frames[0]
+            medicaid_data = self.data_frames[1]
 
-            logging.info("Standardizing column names for merging.")
             # Standardize columns for merging
+            logging.info("Standardizing column names for merging.")
             database_data.rename(columns={'DOB': 'Child_Date_of_Birth'}, inplace=True)
             medicaid_data.rename(columns={'Child_DOB': 'Child_Date_of_Birth', 'Last_Name': 'Mother_Last_Name'}, inplace=True)
 
             # Normalize the names for matching
+            logging.info("Normalizing names for matching.")
             for df in [database_data, medicaid_data]:
-                for col in ['Mother_First_Name', 'Mother_Last_Name', 'Child_First_Name', 'Child_Last_Name']:
-                    if col in df.columns:
-                        df[col] = df[col].astype(str).str.lower().str.replace(r'\W', '', regex=True)
-                    else:
-                        df[col] = ''
-                        logging.warning(f"Column '{col}' not found in one of the data frames. Filling with empty strings.")
+                for col in ['Mother_First_Name', 'Mother_Last_Name']:
+                    df[col] = df[col].str.lower().str.replace(r'\W', '', regex=True)
 
             # Convert DOB columns to consistent date format
             logging.info("Converting 'Child_Date_of_Birth' columns to datetime format.")
@@ -88,14 +85,23 @@ class DataModel:
                              (combined_data['Child_Date_of_Birth'] == row['Child_Date_of_Birth'])).any(), axis=1)].copy()
             unmatched_medicaid['Source'] = 'Medicaid'
 
-            # Save unmatched data
+            # Check if there are unmatched rows in either data frame
             if not unmatched_database.empty or not unmatched_medicaid.empty:
                 logging.info("Processing unmatched data.")
+
+                # Standardize unmatched data columns to align with combined_data
+                unmatched_database = unmatched_database.reindex(columns=combined_data.columns.tolist() + ['Source'], fill_value='')
+                unmatched_medicaid = unmatched_medicaid.reindex(columns=combined_data.columns.tolist() + ['Source'], fill_value='')
+
+                # Concatenate unmatched records
                 unmatched_data = pd.concat([unmatched_database, unmatched_medicaid], ignore_index=True)
+
+                # Capitalize all names in unmatched data
                 for col in ['Mother_First_Name', 'Mother_Last_Name', 'Child_First_Name', 'Child_Last_Name']:
                     if col in unmatched_data.columns:
                         unmatched_data[col] = unmatched_data[col].str.capitalize()
 
+                # Save the unmatched data to an Excel file
                 unmatched_file_path = 'unmatched_data.xlsx'
                 unmatched_data.to_excel(unmatched_file_path, index=False)
                 logging.info(f"Unmatched data saved to {unmatched_file_path}")
@@ -112,7 +118,10 @@ class DataModel:
             matched_file_path = 'combined_matched_data.xlsx'
             combined_data.to_excel(matched_file_path, index=False)
             logging.info(f"Matched data saved to {matched_file_path}")
+
+            # Store the combined data in the model
             self.combined_data = combined_data
+
             return combined_data
 
         except Exception as e:
