@@ -101,12 +101,12 @@ class MainController:
             logging.warning("Attempted to combine data with less than two files.")
 
     def load_combined_data(self):
-        """
-        Load existing combined data and display it.
-        """
         logging.info("Loading existing combined data.")
         combined_data = self.model.load_combined_data()
         if combined_data is not None:
             logging.info("Combined data loaded successfully. Displaying combined data.")
             combined_data_controller = CombinedDataController(self.root, self.model)
             combined_data_controller.show_combined_data()
+        else:
+            logging.error("Failed to load combined data.")
+

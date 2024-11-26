@@ -141,6 +141,7 @@ class DataModel:
             if Crypto.is_encrypted(file_path):
                 logging.info("Combined data file is encrypted. Decrypting...")
                 Crypto.decrypt_file(file_path, Crypto.loadKey())
+                logging.info("File decrypted successfully.")
 
             # Load the existing combined data
             self.combined_data = pd.read_excel(file_path)
@@ -151,6 +152,7 @@ class DataModel:
             messagebox.showerror("Error", f"Failed to load combined data file: {e}")
             logging.error(f"Failed to load combined data file: {e}")
             return None
+
 
     def decrypt_file(self, filepath=None):
         logging.info("Attempting to decrypt file.")

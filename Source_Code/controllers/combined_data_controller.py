@@ -18,28 +18,31 @@ class CombinedDataController:
 
     def show_combined_data(self):
         logging.info("Displaying combined data view.")
-        self.view = CombinedDataView(self.root, self, self.model.combined_data)
+        if self.model.combined_data is not None and not self.model.combined_data.empty:
+            logging.info(f"Combined data has {len(self.model.combined_data)} records.")
+            self.view = CombinedDataView(self.root, self, self.model.combined_data)
+        else:
+            logging.error("No combined data available to display.")
+            messagebox.showerror("Error", "No combined data available to display.")
+
 
     def search_combined_names(self):
         # Implement search functionality
         logging.info("Searching combined names.")
         pass
 
+    # controllers/combined_data_controller.py
+
     def show_child_profile(self, event):
-        selected_item = self.view.treeview.selection()
-        if not selected_item:
-            logging.warning("No profile selected for viewing.")
-            return
-
-        # Get selected entry values
-        selected_values = self.view.treeview.item(selected_item, 'values')
-
-        # Extract data and show profile
-        child_data = self.get_child_data(selected_values)
+        logging.info("Show child profile requested.")
+        child_data = self.view.get_selected_child_data()
         if child_data is not None:
             logging.info(f"Opening profile for child: {child_data['Child_First_Name']} {child_data['Child_Last_Name']}")
-            profile_controller = ProfileController(self.root, child_data)
+            profile_controller = ProfileController(self.root, child_data, self.model)
             profile_controller.show_profile()
+        else:
+            logging.warning("No child data found for selected item.")
+
 
     def get_child_data(self, selected_values):
         # Implement method to extract child data from the model
