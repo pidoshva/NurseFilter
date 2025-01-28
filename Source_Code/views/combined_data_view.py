@@ -1,133 +1,193 @@
-# views/combined_data_view.py
-
 import tkinter as tk
-from tkinter import ttk
+import pandas as pd
 import logging
+from tkinter import ttk, messagebox
 
 class CombinedDataView:
     """
-    View class for displaying combined data.
+    View class for displaying the combined data in a Treeview,
+    plus search, sort by DOB, nurse stats, batch assign, unmatched, etc.
     """
-    def __init__(self, root, controller, combined_data):
+
+    def __init__(self, root, controller, combined_data, unmatched_count=0):
         self.root = root
         self.controller = controller
-        self.combined_data = combined_data
-        self.filtered_data = combined_data  # Initialize filtered data
+
+        self.combined_data = combined_data.copy()
+        self.filtered_data = combined_data.copy()
+
+        self.sort_ascending = True
+        self.unmatched_count = unmatched_count
+
         self.create_view()
         logging.info("CombinedDataView initialized.")
 
     def create_view(self):
-        logging.info("Creating combined data view.")
-        self.combined_names_window = tk.Toplevel(self.root)
-        self.combined_names_window.title("Combined Data")
-        self.combined_names_window.geometry("1000x600")
-        self.combined_names_window.minsize(800, 400)
-        self.combined_names_window.resizable(True, True)
+        self.combined_window = tk.Toplevel(self.root)
+        self.combined_window.title("Combined Data")
+        self.combined_window.geometry("1000x600")
+        self.combined_window.minsize(800, 400)
 
-        # Search Frame
-        search_frame = tk.Frame(self.combined_names_window)
-        search_frame.pack(fill=tk.X, pady=5)
+        # Top frame: search, sort, nurse stats
+        top_frame = tk.Frame(self.combined_window)
+        top_frame.pack(fill=tk.X, padx=5, pady=5)
 
         self.search_var = tk.StringVar()
-        search_entry = tk.Entry(search_frame, textvariable=self.search_var)
-        search_entry.pack(side=tk.LEFT, padx=10, fill=tk.X, expand=True)
+        search_entry = tk.Entry(top_frame, textvariable=self.search_var)
+        search_entry.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
 
-        search_button = tk.Button(search_frame, text="Search", command=self.search_combined_names)
-        search_button.pack(side=tk.RIGHT, padx=10)
+        search_button = tk.Button(top_frame, text="Search", command=self.search_data)
+        search_button.pack(side=tk.LEFT, padx=5)
 
-        # Treeview to display data
-        columns = ("Mother_ID", "Child_Name", "Child_Date_of_Birth", "Assigned_Nurse")
-        self.treeview = ttk.Treeview(self.combined_names_window, columns=columns, show='headings')
+        # Sort by DOB
+        self.sort_button = tk.Button(top_frame, text="Sort by DOB ▲", command=self.sort_by_dob)
+        self.sort_button.pack(side=tk.LEFT, padx=5)
 
-        # Define headings
+        # Nurse Statistics
+        nurse_stats_button = tk.Button(top_frame, text="Nurse Statistics",
+                                       command=self.controller.show_nurse_statistics)
+        nurse_stats_button.pack(side=tk.LEFT, padx=5)
+
+        # Treeview
+        columns = ("Mother_ID", "First_Name", "Last_Name", "Date_of_Birth", "Assigned_Nurse")
+        self.treeview = ttk.Treeview(self.combined_window, columns=columns, show='headings')
+
+        # Set column headings with proper labels
+        column_headers = {
+            "Mother_ID": "Mother ID",
+            "First_Name": "First Name",
+            "Last_Name": "Last Name", 
+            "Date_of_Birth": "Date of Birth",
+            "Assigned_Nurse": "Assigned Nurse"
+        }
+        
         for col in columns:
-            self.treeview.heading(col, text=col)
+            self.treeview.heading(col, text=column_headers[col])
             self.treeview.column(col, anchor="center", width=150)
 
-        # Add vertical scrollbar
-        scrollbar = ttk.Scrollbar(self.combined_names_window, orient="vertical", command=self.treeview.yview)
-        self.treeview.configure(yscroll=scrollbar.set)
+        scrollbar = ttk.Scrollbar(self.combined_window, orient="vertical", command=self.treeview.yview)
+        self.treeview.configure(yscrollcommand=scrollbar.set)
         scrollbar.pack(side='right', fill='y')
 
         self.treeview.pack(fill=tk.BOTH, expand=True)
-        self.treeview.bind('<Double-1>', self.controller.show_child_profile)
 
-        # Populate Treeview with data
-        self.populate_treeview()
-        logging.info("Combined data view created and displayed.")
+        # Double-click => show child profile
+        self.treeview.bind("<Double-1>", lambda e: self.controller.show_child_profile(e, self))
 
-    def populate_treeview(self):
-        logging.info("Populating Treeview with combined data.")
-        self.clear_treeview()
-        for index, row in self.filtered_data.iterrows():
-            child_name = f"{row.get('Child_First_Name', '')} {row.get('Child_Last_Name', '')}"
-            assigned_nurse = row.get('Assigned_Nurse', 'None')
-            self.treeview.insert("", "end", values=(
-                row.get('Mother_ID', ''),
-                child_name,
-                row.get('Child_Date_of_Birth', ''),
-                assigned_nurse
-            ))
-        logging.info("Treeview populated.")
+        # Populate
+        self.update_treeview(self.filtered_data)
 
-    def clear_treeview(self):
-        logging.info("Clearing Treeview.")
+        # Bottom frame: display in excel, batch assign, generate report, unmatched
+        bottom_frame = tk.Frame(self.combined_window)
+        bottom_frame.pack(fill=tk.X, pady=5)
+
+        excel_btn = tk.Button(bottom_frame, text="Display in Excel",
+                              command=self.controller.display_in_excel)
+        excel_btn.pack(side=tk.LEFT, padx=10)
+
+        batch_btn = tk.Button(bottom_frame, text="Batch Assign Nurses",
+                              command=self.controller.batch_assign_nurses)
+        batch_btn.pack(side=tk.LEFT, padx=10)
+
+        report_btn = tk.Button(bottom_frame, text="Generate Report",
+                               command=self.controller.generate_report)
+        report_btn.pack(side=tk.LEFT, padx=10)
+
+        # If there are unmatched rows, show a button w/ a red badge
+        if self.unmatched_count > 0:
+            unmatched_button = tk.Button(bottom_frame, text="View Unmatched Data",
+                                         command=self.controller.view_unmatched_data)
+            unmatched_button.pack(side=tk.LEFT, padx=10)
+            # Badge
+            count_label = tk.Label(unmatched_button, text=str(self.unmatched_count),
+                                   bg="red", fg="white", font=("Arial", 10, "bold"))
+            count_label.place(relx=1.0, rely=0.0, anchor="ne")
+
+    def update_treeview(self, data):
+        """Update treeview with fresh data."""
+        # Clear existing items
         for item in self.treeview.get_children():
             self.treeview.delete(item)
-        logging.info("Treeview cleared.")
-
-    def update_treeview(self):
-        logging.info("Updating Treeview with filtered data.")
-        self.populate_treeview()
-
-    def search_combined_names(self):
-        logging.info("Search initiated.")
-        search_text = self.search_var.get().strip().lower()
-        logging.info(f"Search text: '{search_text}'")
-        if search_text == '':
-            self.filtered_data = self.combined_data
-        else:
-            # Filter the combined_data DataFrame based on the search text
-            self.filtered_data = self.combined_data[
-                self.combined_data.apply(
-                    lambda row: search_text in str(row.get('Mother_ID', '')).lower() or
-                                search_text in str(row.get('Child_First_Name', '')).lower() or
-                                search_text in str(row.get('Child_Last_Name', '')).lower() or
-                                search_text in (str(row.get('Child_First_Name', '')).lower() + ' ' + str(row.get('Child_Last_Name', '')).lower()) or
-                                search_text in str(row.get('Child_Date_of_Birth', '')).lower() or
-                                search_text in str(row.get('Assigned_Nurse', '')).lower(),
-                    axis=1
-                )
+        
+        # Define columns in correct order
+        columns = ['Mother_ID', 'Child_First_Name', 'Child_Last_Name', 
+                  'Child_Date_of_Birth', 'Assigned_Nurse']
+        
+        # Insert fresh data with correct column ordering
+        for _, row in data.iterrows():
+            values = [
+                row.get('Mother_ID', ''),
+                row.get('Child_First_Name', ''),
+                row.get('Child_Last_Name', ''),
+                row.get('Child_Date_of_Birth', ''),
+                row.get('Assigned_Nurse', '')
             ]
-        self.update_treeview()
-        logging.info("Search completed and Treeview updated.")
+            self.treeview.insert('', 'end', values=values)
+
+    def clear_treeview(self):
+        for item in self.treeview.get_children():
+            self.treeview.delete(item)
 
     def get_selected_child_data(self):
-        selected_item = self.treeview.selection()
-        if not selected_item:
-            logging.warning("No item selected in Treeview.")
-            return None
+        """Get data for selected child in treeview."""
+        selection = self.treeview.selection()
+        if selection:
+            try:
+                vals = self.treeview.item(selection[0])['values']
+                # Update unpacking to match actual columns (Mother_ID, First, Last, DOB, Nurse)
+                mother_id, child_first_name, child_last_name, dob, nurse = vals
+                
+                # Locate the child's data in the combined DataFrame
+                child_data = self.controller.model.combined_data[
+                    (self.controller.model.combined_data['Mother_ID'].astype(str) == str(mother_id)) &
+                    (self.controller.model.combined_data['Child_First_Name'].str.lower() == child_first_name.lower()) &
+                    (self.controller.model.combined_data['Child_Last_Name'].str.lower() == child_last_name.lower()) &
+                    (self.controller.model.combined_data['Child_Date_of_Birth'] == dob)
+                ]
 
-        selected_values = self.treeview.item(selected_item, 'values')
-        logging.info(f"Selected values: {selected_values}")
+                if not child_data.empty:
+                    logging.info("Child data found.")
+                    return child_data.iloc[0]
+                else:
+                    logging.error("Child data not found.")
+                    messagebox.showerror("Error", "Child data not found.")
+                    return None
+            except Exception as e:
+                logging.error(f"Error retrieving child data: {e}")
+                messagebox.showerror("Error", f"Error retrieving child data: {e}")
+                return None
+        return None
 
-        mother_id = selected_values[0]
-        child_name = selected_values[1].split()
-        child_first_name = child_name[0] if len(child_name) > 0 else ''
-        child_last_name = child_name[1] if len(child_name) > 1 else ''
-        child_dob = selected_values[2]
-
-        # Find the row in combined_data that matches the selected item
-        child_data = self.combined_data[
-            (self.combined_data['Mother_ID'].astype(str) == str(mother_id)) &
-            (self.combined_data['Child_First_Name'].str.lower() == child_first_name.lower()) &
-            (self.combined_data['Child_Last_Name'].str.lower() == child_last_name.lower()) &
-            (self.combined_data['Child_Date_of_Birth'] == child_dob)
-        ]
-
-        if not child_data.empty:
-            logging.info("Child data found for selected item.")
-            return child_data.iloc[0]
+    def search_data(self):
+        s = self.search_var.get().lower().strip()
+        if not s:
+            self.filtered_data = self.combined_data.copy()
         else:
-            logging.error("Child data not found for selected item.")
-            return None
+            def row_matches(r):
+                if s in str(r.get('Mother_ID','')).lower():
+                    return True
+                cname = f"{r.get('Child_First_Name','')} {r.get('Child_Last_Name','')}".lower()
+                if s in cname:
+                    return True
+                if s in str(r.get('Child_Date_of_Birth','')).lower():
+                    return True
+                if s in str(r.get('Assigned_Nurse','')).lower():
+                    return True
+                return False
+
+            self.filtered_data = self.combined_data[self.combined_data.apply(row_matches, axis=1)]
+
+        self.update_treeview(self.filtered_data)
+
+    def sort_by_dob(self):
+        self.sort_ascending = not self.sort_ascending
+        arrow = "▲" if self.sort_ascending else "▼"
+        self.sort_button.config(text=f"Sort by DOB {arrow}")
+
+        df = self.filtered_data.copy()
+        df['dob_temp'] = pd.to_datetime(df['Child_Date_of_Birth'], errors='coerce')
+        df.sort_values(by='dob_temp', ascending=self.sort_ascending, inplace=True)
+        df.drop(columns=['dob_temp'], inplace=True)
+
+        self.filtered_data = df
+        self.update_treeview(self.filtered_data)

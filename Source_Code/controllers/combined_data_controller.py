@@ -5,6 +5,7 @@ import logging
 from views.combined_data_view import CombinedDataView
 from controllers.profile_controller import ProfileController
 from tkinter import messagebox
+import pandas as pd
 
 class CombinedDataController:
     """
@@ -25,13 +26,16 @@ class CombinedDataController:
             logging.error("No combined data available to display.")
             messagebox.showerror("Error", "No combined data available to display.")
 
-
-    def search_combined_names(self):
-        # Implement search functionality
-        logging.info("Searching combined names.")
-        pass
-
-    # controllers/combined_data_controller.py
+    def search_combined_names(self, query):
+        logging.info(f"Searching combined names for query: {query}")
+        if self.model.combined_data is not None and not self.model.combined_data.empty:
+            results = self.model.combined_data[
+                self.model.combined_data['Child_First_Name'].str.contains(query, case=False, na=False)
+            ]
+            if self.view:
+                self.view.update_table(results)
+        else:
+            logging.warning("No combined data to search.")
 
     def show_child_profile(self, event):
         logging.info("Show child profile requested.")
@@ -42,7 +46,6 @@ class CombinedDataController:
             profile_controller.show_profile()
         else:
             logging.warning("No child data found for selected item.")
-
 
     def get_child_data(self, selected_values):
         # Implement method to extract child data from the model
@@ -73,3 +76,19 @@ class CombinedDataController:
             logging.error(f"Error retrieving child data: {e}")
             messagebox.showerror("Error", f"Error retrieving child data: {e}")
             return None
+
+    def refresh_view(self):
+        """Refresh the CombinedDataView TreeView with the latest combined data."""
+        if self.view:
+            # Reload fresh data from Excel
+            try:
+                fresh_data = pd.read_excel('combined_matched_data.xlsx')
+                self.model.combined_data = fresh_data
+                self.view.update_treeview(fresh_data)
+                logging.info("Combined data view refreshed with latest data")
+            except Exception as e:
+                logging.error(f"Error refreshing combined data view: {e}")
+
+    def after_nurse_assignment(self):
+        if hasattr(self.root, 'combined_data_controller'):
+            self.root.combined_data_controller.refresh_view()
