@@ -20,7 +20,7 @@ class DataModel:
         logging.info(f"Attempting to read Excel file: {filepath}")
         try:
             # Read the Excel file into a DataFrame and normalize column names
-            data = pd.read_excel(filepath)
+            data = pd.read_excel(filepath, engine='openpyxl')
             data.columns = [column.replace(" ", "_") for column in data.columns]
             logging.info(f"Successfully read file: {filepath}")
             self.data_frames.append(data)
