@@ -11,6 +11,9 @@ from views.main_view import MainView
 from views.combined_data_view import CombinedDataView
 from views.profile_view import ProfileView
 
+from controllers.combined_data_controller import CombinedDataController
+
+
 class MainController:
     """
     The main controller for the application.
@@ -21,6 +24,9 @@ class MainController:
         self.root = root
         self.model = DataModel()
         self.main_view = MainView(root, self)
+
+        self.combined_data_controller = CombinedDataController(root, self.model)
+
         logging.info("MainController initialized.")
 
     def on_closing(self):
@@ -233,44 +239,15 @@ class MainController:
 
     # 7. Viewing Unmatched
     def view_unmatched_data(self):
-        unmatched = self.model.unmatched_data
-        if unmatched is None or unmatched.empty:
-            messagebox.showinfo("No Unmatched Data", "No unmatched data available.")
-            return
+        """
+        Calls the unmatched data display function from CombinedDataController.
+        """
+        if self.combined_data_controller is not None:
+            logging.info("Calling view_unmatched_data in CombinedDataController.")
+            self.combined_data_controller.view_unmatched_data()
+        else:
+            logging.error("CombinedDataController is not initialized!")
 
-        w = tk.Toplevel(self.root)
-        w.title("Unmatched Data")
-        w.geometry("800x400")
-
-        columns = list(unmatched.columns)
-        tree = ttk.Treeview(w, columns=columns, show='headings')
-        for col in columns:
-            tree.heading(col, text=col)
-            tree.column(col, anchor="center", width=120)
-        tree.pack(fill=tk.BOTH, expand=True)
-
-        for _, row in unmatched.iterrows():
-            vals = [row.get(c,"") for c in columns]
-            tree.insert("", "end", values=vals)
-
-        def open_unmatched_excel():
-            path = 'unmatched_data.xlsx'
-            if not os.path.exists(path):
-                messagebox.showerror("Error", "unmatched_data.xlsx not found.")
-                return
-            try:
-                if platform.system() == "Darwin":
-                    os.system(f"open {path}")
-                elif platform.system() == "Windows":
-                    os.startfile(path)
-                else:
-                    os.system(f"xdg-open {path}")
-            except Exception as e:
-                messagebox.showerror("Error", f"Error opening unmatched data: {e}")
-
-        btn_frame = tk.Frame(w)
-        btn_frame.pack(pady=5)
-        tk.Button(btn_frame, text="View in Excel", command=open_unmatched_excel).pack()
 
     # 8. Generating a Report
     def generate_report(self):

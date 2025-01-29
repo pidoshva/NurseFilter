@@ -7,6 +7,8 @@ from controllers.profile_controller import ProfileController
 from tkinter import messagebox
 import pandas as pd
 
+from views.unmatched_data_view import UnmatchedDataView
+
 class CombinedDataController:
     """
     Controller class for combined data view.
@@ -92,3 +94,16 @@ class CombinedDataController:
     def after_nurse_assignment(self):
         if hasattr(self.root, 'combined_data_controller'):
             self.root.combined_data_controller.refresh_view()
+
+    def view_unmatched_data(self):
+        """
+        Display unmatched data in a separate window.
+        """
+        logging.info("Attempting to display unmatched data.")
+
+        if self.model.unmatched_data is None or self.model.unmatched_data.empty:
+            messagebox.showinfo("No Data", "No unmatched data available.")
+            return
+
+        # Open UnmatchedDataView instead of showing combined data
+        UnmatchedDataView(self.root, self, self.model.unmatched_data)
