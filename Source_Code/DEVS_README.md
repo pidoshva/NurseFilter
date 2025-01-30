@@ -142,6 +142,6 @@ This version of the project follows the **Model-View-Controller (MVC)** pattern 
 ### Current Bug Report
 
 1. Assigned Nurses column **does not refresh** upon nurse assignment in the main ("Combined Names") window.
-2. **FIXED** Unmatched Data functionality is broken: **Does not provide expandable view of unmatched data.**  
+2. **FIXED** ~~Unmatched Data functionality is broken: **Does not provide expandable view of unmatched data.**~~  
 3. Broken Report: Missing data; might need reimplememtation.
 4. Window sizes and colors should be adjusted.
