@@ -44,8 +44,11 @@ class CombinedDataView:
         self.sort_button.pack(side=tk.LEFT, padx=5)
 
         # Nurse Statistics
-        nurse_stats_button = tk.Button(top_frame, text="Nurse Statistics",
-                                       command=self.controller.show_nurse_statistics)
+        nurse_stats_button = tk.Button(
+            top_frame, 
+            text="Nurse Statistics",
+            command=self.controller.show_nurse_statistics
+        )
         nurse_stats_button.pack(side=tk.LEFT, padx=5)
 
         # Treeview
@@ -106,25 +109,25 @@ class CombinedDataView:
     def update_treeview(self, data):
         """Update treeview with fresh data."""
         # Clear existing items
-        for item in self.treeview.get_children():
-            self.treeview.delete(item)
+        self.clear_treeview()
         
-        # Define columns in correct order
-        columns = ['Mother_ID', 'Child_First_Name', 'Child_Last_Name', 
-                  'Child_Date_of_Birth', 'Assigned_Nurse']
-        
-        # Insert fresh data with correct column ordering
+        # Insert fresh data
         for _, row in data.iterrows():
             values = [
-                row.get('Mother_ID', ''),
+                str(row.get('Mother_ID', '')),  # Ensure Mother_ID is string
                 row.get('Child_First_Name', ''),
                 row.get('Child_Last_Name', ''),
                 row.get('Child_Date_of_Birth', ''),
-                row.get('Assigned_Nurse', '')
+                row.get('Assigned_Nurse', 'None')  # Ensure 'None' is displayed if no nurse
             ]
             self.treeview.insert('', 'end', values=values)
+        
+        # Force update
+        self.treeview.update_idletasks()
+        logging.info("Treeview updated with fresh data")
 
     def clear_treeview(self):
+        """Clear all items from treeview"""
         for item in self.treeview.get_children():
             self.treeview.delete(item)
 

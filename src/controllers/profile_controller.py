@@ -46,9 +46,20 @@ class ProfileController:
                     df.to_excel('combined_matched_data.xlsx', index=False)
                     logging.info(f"Assigned Nurse '{nurse_name}'")
                     self.view.update_nurse_info(f"Name: {nurse_name}")
-                    # Refresh combined data view
+                    
+                    # Get the correct controller instance from root window
                     if hasattr(self.root, 'combined_data_controller'):
+                        logging.info("Found combined_data_controller, refreshing view")
                         self.root.combined_data_controller.refresh_view()
+                    else:
+                        # Try to find it through the main window if we're in a Toplevel
+                        main_window = self.root.master if isinstance(self.root, tk.Toplevel) else self.root
+                        if hasattr(main_window, 'combined_data_controller'):
+                            logging.info("Found combined_data_controller through main window")
+                            main_window.combined_data_controller.refresh_view()
+                        else:
+                            logging.warning("Could not find combined_data_controller in any window")
+                    
                     messagebox.showinfo("Success", f"Nurse '{nurse_name}' assigned.")
                     assign_win.destroy()
                 else:
