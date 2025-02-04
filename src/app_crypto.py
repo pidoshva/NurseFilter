@@ -1,5 +1,6 @@
 from cryptography.fernet import Fernet
 import os
+import logging
 
 class Crypto:
     def generateKey():
@@ -62,6 +63,8 @@ class Crypto:
             with open(filepath, 'rb') as file:
                 data = file.read()
                 fernet.decrypt(data)
+                logging.info(f"File '{filepath}' is encrypted.")
                 return True
-        except:
+        except Exception as e:
+            logging.info(f"File '{filepath}' is not encrypted or decryption failed: {e}")
             return False

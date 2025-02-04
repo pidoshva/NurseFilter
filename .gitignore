@@ -1,3 +1,9 @@
 *.pyc
 Source_Code/__pycache__/invoker.cpython-312.pyc
 combined_matched_data.xlsx
+*xlsx
+*__pycache__
+unmatched_data.xlsx
+Source_Code/database_data.xlsx
+Source_Code/medicaid_data.xlsx
+unmatched_data.xlsx
