@@ -137,7 +137,7 @@ class DataModel:
                     combined[col] = combined[col].astype(str).str.capitalize()
 
             if 'Assigned_Nurse' not in combined.columns:
-                combined['Assigned_Nurse'] = 'None'
+                combined['Assigned_Nurse'] = None
 
             combined.to_excel('combined_matched_data.xlsx', index=False)
             self.combined_data = combined
@@ -153,20 +153,33 @@ class DataModel:
         if not os.path.exists(path):
             messagebox.showerror("Error", "No combined data file found. Please combine data first.")
             return None
+
         try:
             if self.is_file_encrypted(path):
                 self.decrypt_file(path)
+
             df = pd.read_excel(path)
+
+            # Fix data type issues
+            df = df.astype(str).fillna("None")
+
+            if 'Assigned_Nurse' not in df.columns:
+                df['Assigned_Nurse'] = None
+
             self.combined_data = df
+
             unmatched_path = 'unmatched_data.xlsx'
             if os.path.exists(unmatched_path):
                 self.unmatched_data = pd.read_excel(unmatched_path)
             else:
                 self.unmatched_data = pd.DataFrame()
+
             return df
+
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load combined data: {e}")
             return None
+
 
     # Nurse assignment
     def update_child_assigned_nurse(self, child_data, nurse_name):
