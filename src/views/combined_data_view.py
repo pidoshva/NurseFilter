@@ -106,6 +106,17 @@ class CombinedDataView:
                                    bg="red", fg="white", font=("Arial", 10, "bold"))
             count_label.place(relx=1.0, rely=0.0, anchor="ne")
 
+        # If there are duplicate rows, show a button with a blue badge
+        if self.controller.model.duplicate_data is not None and not self.controller.model.duplicate_data.empty:
+            duplicate_button = tk.Button(bottom_frame, text="View Duplicate Data", command=self.controller.view_duplicate_data)
+            duplicate_button.pack(side=tk.LEFT, padx=10)
+            # Badge
+            duplicate_count = int((len(self.controller.model.duplicate_data))/2)
+            dup_count_label = tk.Label(duplicate_button, text=str(duplicate_count),
+                                    bg="blue", fg="white", font=("Arial", 10, "bold"))
+            dup_count_label.place(relx=1.0, rely=0.0, anchor="ne")
+
+
     def update_treeview(self, data):
         """Update treeview with fresh data."""
         # Clear existing items
