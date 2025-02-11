@@ -260,49 +260,118 @@ class MainController:
 
         report_win = tk.Toplevel(self.root)
         report_win.title("Statistical Report")
-        report_win.geometry("600x500")
+        report_win.geometry("600x650")
 
-        total = len(df)
-        unassigned = len(df[df['Assigned_Nurse'] == 'None'])
-        tk.Label(report_win, text=f"Total Children: {total}", font=("Arial",12)).pack(pady=5)
-        tk.Label(report_win, text=f"Unassigned Children: {unassigned}", font=("Arial",12)).pack(pady=5)
+        # Ensure 'Assigned_Nurse' column exists and replace NaN with 'None'
+        if 'Assigned_Nurse' not in df.columns:
+            messagebox.showerror("Error", "No 'Assigned_Nurse' column found in data.")
+            return
 
-        df['dob_temp'] = pd.to_datetime(df['Child_Date_of_Birth'], errors='coerce')
-        valid = df.dropna(subset=['dob_temp'])
-        if not valid.empty:
-            today = datetime.today()
-            days = valid['dob_temp'].apply(lambda d: (today - d).days)
-            avg_yrs = days.mean()/365 if not days.empty else None
-            if avg_yrs is not None:
-                tk.Label(report_win, text=f"Average Age: {avg_yrs:.1f} years", font=("Arial",12)).pack(pady=5)
-            ydx = valid['dob_temp'].idxmax()
-            odx = valid['dob_temp'].idxmin()
-            if ydx is not None:
-                yrow = valid.loc[ydx]
-                yn = f"{yrow.get('Child_First_Name','')} {yrow.get('Child_Last_Name','')}"
-                tk.Label(report_win, text=f"Youngest Child: {yn}", font=("Arial",12)).pack(pady=5)
-            if odx is not None:
-                orow = valid.loc[odx]
-                on = f"{orow.get('Child_First_Name','')} {orow.get('Child_Last_Name','')}"
-                tk.Label(report_win, text=f"Oldest Child: {on}", font=("Arial",12)).pack(pady=5)
+        df['Assigned_Nurse'] = df['Assigned_Nurse'].fillna("None").astype(str).str.strip()
 
-        # Nurse assignment counts
-        nurse_counts = df['Assigned_Nurse'].value_counts(dropna=False)
-        nf = tk.Frame(report_win)
-        nf.pack(pady=10, fill=tk.X)
-        tk.Label(nf, text="Assignments per Nurse:", font=("Arial",12,"bold")).pack()
+        # Count Assigned and Unassigned Children Correctly
+        total_children = len(df)
+        assigned_df = df[df['Assigned_Nurse'].str.lower() != "none"]  # Proper filtering
+        assigned_count = len(assigned_df)
+        unassigned_count = total_children - assigned_count
+        assigned_percentage = (assigned_count / total_children * 100) if total_children > 0 else 0
+        unassigned_percentage = 100 - assigned_percentage
 
-        tree = ttk.Treeview(nf, columns=("Nurse","Count"), show="headings", height=5)
-        tree.heading("Nurse", text="Nurse")
-        tree.heading("Count", text="Count")
-        tree.column("Nurse", anchor="center", width=200)
-        tree.column("Count", anchor="center", width=80)
-        tree.pack(fill=tk.X)
+        tk.Label(report_win, text=f"📌 Total Children: {total_children}", font=("Arial", 12)).pack(pady=5)
+        tk.Label(report_win, text=f"👶 Assigned to Nurses: {assigned_count} ({assigned_percentage:.1f}%)", font=("Arial", 12)).pack(pady=5)
+        tk.Label(report_win, text=f"🚨 Unassigned Children: {unassigned_count} ({unassigned_percentage:.1f}%)", font=("Arial", 12)).pack(pady=5)
 
-        for nurse, count in nurse_counts.items():
-            tree.insert("", "end", values=(nurse, count))
+        # Handle Date of Birth correctly
+        if 'Child_Date_of_Birth' in df.columns:
+            df['dob_temp'] = pd.to_datetime(df['Child_Date_of_Birth'], errors='coerce')
+            valid_ages = df.dropna(subset=['dob_temp'])
+
+            if not valid_ages.empty:
+                today = pd.Timestamp.today()
+                avg_age_years = (today - valid_ages['dob_temp']).dt.days.mean() / 365
+                tk.Label(report_win, text=f"🧒 Average Age: {avg_age_years:.1f} years", font=("Arial", 12)).pack(pady=5)
+
+                youngest = valid_ages.loc[valid_ages['dob_temp'].idxmax()]
+                oldest = valid_ages.loc[valid_ages['dob_temp'].idxmin()]
+                tk.Label(report_win, text=f"👶 Youngest: {youngest['Child_First_Name']} {youngest['Child_Last_Name']} ({youngest['Child_Date_of_Birth']})", font=("Arial", 12)).pack(pady=5)
+                tk.Label(report_win, text=f"🧓 Oldest: {oldest['Child_First_Name']} {oldest['Child_Last_Name']} ({oldest['Child_Date_of_Birth']})", font=("Arial", 12)).pack(pady=5)
+
+        # Display Children Per Town (Clickable Towns)
+        if 'City' in df.columns:
+            town_counts = df['City'].value_counts().to_dict()
+
+            town_frame = tk.Frame(report_win)
+            town_frame.pack(pady=10, fill=tk.X)
+            tk.Label(town_frame, text="🏙️ Children per Town (Click to View):", font=("Arial", 12, "bold")).pack()
+
+            tree = ttk.Treeview(town_frame, columns=("Town", "Count"), show="headings", height=8)
+            tree.heading("Town", text="Town")
+            tree.heading("Count", text="Children")
+            tree.column("Town", anchor="center", width=250)
+            tree.column("Count", anchor="center", width=80)
+            tree.pack(fill=tk.X)
+
+            # Make Town Clickable to Show Children
+            def open_town_window(event):
+                selected_item = tree.selection()
+                if not selected_item:
+                    return
+                
+                town_name = tree.item(selected_item[0], 'values')[0]
+                children_df = df[df['City'] == town_name]
+                
+                if children_df.empty:
+                    messagebox.showinfo("No Data", f"No children found for {town_name}")
+                    return
+                
+                town_window = tk.Toplevel(report_win)
+                town_window.title(f"Children in {town_name}")
+                town_window.geometry("400x500")
+
+                tk.Label(town_window, text=f"Children in {town_name}:", font=("Arial", 12, "bold")).pack(pady=5)
+
+                child_tree = ttk.Treeview(town_window, columns=("Child Name", "Child ID"), show="headings", height=15)
+                child_tree.heading("Child Name", text="Child Name")
+                child_tree.heading("Child ID", text="Child ID")
+                child_tree.column("Child Name", anchor="center", width=250)
+                child_tree.column("Child ID", anchor="center", width=100)
+                child_tree.pack(fill=tk.BOTH, expand=True)
+
+                # Insert child records
+                for _, row in children_df.iterrows():
+                    child_name = f"{row['Child_First_Name']} {row['Child_Last_Name']}"
+                    child_id = row.get("Mother_ID", "N/A")
+                    child_tree.insert("", "end", values=(child_name, child_id))
+
+                # Clicking a Child Opens Profile
+                def open_profile(event):
+                    selected_child = child_tree.selection()
+                    if not selected_child:
+                        return
+
+                    child_values = child_tree.item(selected_child[0], 'values')
+                    child_name, child_id = child_values
+
+                    # Locate child data
+                    selected_child_data = df[(df["Mother_ID"].astype(str) == str(child_id)) & (df["Child_First_Name"] + " " + df["Child_Last_Name"] == child_name)]
+                    
+                    if selected_child_data.empty:
+                        messagebox.showerror("Error", "Child data not found.")
+                        return
+
+                    child_row = selected_child_data.iloc[0]
+                    ProfileView(self.root, self, child_row)
+
+                child_tree.bind("<Double-1>", open_profile)
+
+            tree.bind("<Double-1>", open_town_window)
+
+            # Populate Town List
+            for town, count in town_counts.items():
+                tree.insert("", "end", values=(town, count))
 
         tk.Button(report_win, text="Export as PDF", command=lambda: self.export_report_to_pdf(df)).pack(pady=10)
+
 
     def export_report_to_pdf(self, df):
         try:
@@ -318,14 +387,39 @@ class MainController:
 
             c = canvas.Canvas(pdf_path, pagesize=letter)
             c.setFont("Helvetica-Bold", 14)
-            c.drawString(100, 750, "Statistical Report for Combined Data")
+            c.drawString(100, 750, "Statistical Report")
             c.setFont("Helvetica", 12)
 
-            total = len(df)
-            unassigned = len(df[df['Assigned_Nurse'] == 'None'])
-            c.drawString(100, 730, f"Total Children: {total}")
-            c.drawString(100, 710, f"Unassigned Children: {unassigned}")
-            # More stats can be added...
+            total_children = len(df)
+            assigned_count = len(df[df['Assigned_Nurse'] != 'None'])
+            unassigned_count = total_children - assigned_count
+            assigned_percentage = (assigned_count / total_children * 100) if total_children > 0 else 0
+            unassigned_percentage = 100 - assigned_percentage
+
+            c.drawString(100, 730, f"Total Children: {total_children}")
+            c.drawString(100, 710, f"Total Nurses Assigned: {df['Assigned_Nurse'].nunique()}")
+            c.drawString(100, 690, f"Children Assigned to Nurses: {assigned_count} ({assigned_percentage:.1f}%)")
+            c.drawString(100, 670, f"Unassigned Children: {unassigned_count} ({unassigned_percentage:.1f}%)")
+
+            df['dob_temp'] = pd.to_datetime(df['Child_Date_of_Birth'], errors='coerce')
+            valid_ages = df.dropna(subset=['dob_temp'])
+            if not valid_ages.empty:
+                today = pd.Timestamp.today()
+                avg_age_years = (today - valid_ages['dob_temp']).dt.days.mean() / 365
+                c.drawString(100, 650, f"Average Age: {avg_age_years:.1f} years")
+
+                youngest = valid_ages.loc[valid_ages['dob_temp'].idxmax()]
+                oldest = valid_ages.loc[valid_ages['dob_temp'].idxmin()]
+                c.drawString(100, 630, f"Youngest: {youngest['Child_First_Name']} {youngest['Child_Last_Name']} ({youngest['Child_Date_of_Birth']})")
+                c.drawString(100, 610, f"Oldest: {oldest['Child_First_Name']} {oldest['Child_Last_Name']} ({oldest['Child_Date_of_Birth']})")
+
+            if 'City' in df.columns:
+                town_counts = df['City'].value_counts().head(5)
+                c.drawString(100, 590, "Children per Town:")
+                y_position = 570
+                for town, count in town_counts.items():
+                    c.drawString(120, y_position, f"{town}: {count} children")
+                    y_position -= 20
 
             c.save()
             messagebox.showinfo("Success", f"Report saved at {pdf_path}")
@@ -333,3 +427,4 @@ class MainController:
             messagebox.showerror("Error", "reportlab is not installed.")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to export PDF: {e}")
+
