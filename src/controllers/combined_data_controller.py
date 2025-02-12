@@ -10,6 +10,7 @@ import os
 import platform
 
 from views.unmatched_data_view import UnmatchedDataView
+from views.duplicate_data_view import DuplicateDataView
 
 class CombinedDataController:
     """
@@ -249,3 +250,15 @@ class CombinedDataController:
 
         # Add more report details as needed...
         logging.info("Generated statistical report")
+
+    def view_duplicate_data(self):
+        """
+        Display duplicate data in a separate window.
+        """
+        logging.info("Attempting to display duplicate data.")
+
+        if self.model.duplicate_data is None or self.model.duplicate_data.empty:
+            messagebox.showinfo("No Data", "No duplicate data found.")
+            return
+
+        DuplicateDataView(self.root, self, self.model.duplicate_data)
