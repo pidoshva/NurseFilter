@@ -1,15 +1,15 @@
 import tkinter as tk
 import pandas as pd
+import logging
+from views.view import View
 
-class ProfileView:
-    """
+class ProfileView(View):
+    '''
     View class for displaying a single child's profile.
-    """
-    def __init__(self, root, controller, child_data):
-        self.root = root
-        self.controller = controller
+    '''
+    def __init__(self, root, controller, child_data: pd.Series):
+        super().__init__(root, controller)
         self.child_data = child_data
-        self.profile_window = None
 
         # We'll store text versions so we can copy/export them
         self.mother_info_text = ""
@@ -18,14 +18,16 @@ class ProfileView:
         self.nurse_info_text = ""
 
         self.create_view()
+        logging.info("ProfileView initialized.")
+
 
     def create_view(self):
-        self.profile_window = tk.Toplevel(self.root)
+        profile_window = tk.Toplevel(self.root)
         first = self.child_data.get('Child_First_Name','')
         last = self.child_data.get('Child_Last_Name','')
-        self.profile_window.title(f"Profile of {first} {last}")
+        profile_window.title(f"Profile of {first} {last}")
 
-        frame = tk.Frame(self.profile_window, padx=10, pady=10)
+        frame = tk.Frame(profile_window, padx=10, pady=10)
         frame.pack(fill=tk.BOTH, expand=True)
 
         # Mother's Info

@@ -1,22 +1,31 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+import logging
+from tkinter import ttk
+from pandas import DataFrame
+from views.view import View
 
-class DuplicateDataView:
+class DuplicateDataView(View):
     """
     View class for displaying duplicate data in a Treeview.
     """
 
-    def __init__(self, root, controller, duplicate_data):
-        self.root = root
-        self.controller = controller
+    WINDOW_TITLE = "Duplicate Data"
+    WINDOW_WIDTH = 900
+    WINDOW_HEIGHT = 500
+
+
+    def __init__(self, root, controller, duplicate_data: DataFrame):
+        super().__init__(root, controller)
         self.duplicate_data = duplicate_data
 
         self.create_view()
+        logging.info("DuplicateDataView initialized.")
+
 
     def create_view(self):
         self.window = tk.Toplevel(self.root)
-        self.window.title("Duplicate Data")
-        self.window.geometry("900x500")
+        self.window.title(DuplicateDataView.WINDOW_TITLE)
+        self.window.geometry(f"{DuplicateDataView.WINDOW_WIDTH}x{DuplicateDataView.WINDOW_HEIGHT}")
 
         columns = list(self.duplicate_data.columns)
 
