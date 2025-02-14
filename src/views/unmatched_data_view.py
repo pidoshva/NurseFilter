@@ -1,24 +1,20 @@
 import tkinter as tk
 import logging
 import os
-from pandas import DataFrame
 from tkinter import ttk, messagebox
-from views.view import View
 
-class UnmatchedDataView(View):
+class UnmatchedDataView:
     """
     View class for displaying unmatched data in a collapsible Treeview.
     """
 
-    def __init__(self, root, controller, unmatched_data: DataFrame):
-        super().__init__(root, controller)
+    def __init__(self, root, controller, unmatched_data):
+        self.root = root
+        self.controller = controller
         self.unmatched_data = unmatched_data
 
         logging.info("Opening unmatched data window.")
         self.create_view()
-        logging.info("UnmatchedDataView initialized.")
-
-        
 
     def create_view(self):
         self.window = tk.Toplevel(self.root)
@@ -55,7 +51,7 @@ class UnmatchedDataView(View):
             if not selected_item:
                 return
             
-            row_data: dict = expanded_rows.get(selected_item[0], {})
+            row_data = expanded_rows.get(selected_item[0], {})
             is_expanded = row_data.get("expanded", False)
 
             if not is_expanded:
@@ -85,3 +81,5 @@ class UnmatchedDataView(View):
                 messagebox.showerror("Error", "Unmatched data file does not exist.")
 
         tk.Button(self.window, text="View in Excel", command=view_in_excel).pack(pady=10)
+
+        logging.info("Unmatched data window loaded successfully.")

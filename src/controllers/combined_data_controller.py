@@ -9,18 +9,16 @@ import pandas as pd
 import os
 import platform
 
-from controllers.controller import Controller
-from models.data_model import DataModel
 from views.unmatched_data_view import UnmatchedDataView
 from views.duplicate_data_view import DuplicateDataView
 
-class CombinedDataController(Controller):
+class CombinedDataController:
     """
     Controller class for combined data view.
     """
-    def __init__(self, root, model: DataModel):
-        super().__init__(model) 
+    def __init__(self, root, model):
         self.root = root
+        self.model = model
         self.view = None
         logging.info("CombinedDataController initialized.")
 
@@ -62,37 +60,35 @@ class CombinedDataController(Controller):
         else:
             logging.warning("No child data found for selected item.")
 
-    # I THINK THIS IS UNUSED
+    def get_child_data(self, selected_values):
+        # Implement method to extract child data from the model
+        logging.info("Retrieving child data for profile display.")
+        try:
+            mother_id = selected_values[0]
+            child_name = selected_values[1].split()
+            child_first_name = child_name[0]
+            child_last_name = child_name[1]
+            child_dob = selected_values[2]
 
-    # def get_child_data(self, selected_values: list[str, tuple]):
-    #     # Implement method to extract child data from the model
-    #     logging.info("Retrieving child data for profile display.")
-    #     try:
-    #         mother_id = selected_values[0]
-    #         child_name = selected_values[1].split()
-    #         child_first_name = child_name[0]
-    #         child_last_name = child_name[1]
-    #         child_dob = selected_values[2]
+            # Locate the child's data in the combined DataFrame
+            child_data = self.model.combined_data[
+                (self.model.combined_data['Mother_ID'].astype(str) == str(mother_id)) &
+                (self.model.combined_data['Child_First_Name'].str.lower() == child_first_name.lower()) &
+                (self.model.combined_data['Child_Last_Name'].str.lower() == child_last_name.lower()) &
+                (self.model.combined_data['Child_Date_of_Birth'] == child_dob)
+            ]
 
-    #         # Locate the child's data in the combined DataFrame
-    #         child_data = self.model.combined_data[
-    #             (self.model.combined_data['Mother_ID'].astype(str) == str(mother_id)) &
-    #             (self.model.combined_data['Child_First_Name'].str.lower() == child_first_name.lower()) &
-    #             (self.model.combined_data['Child_Last_Name'].str.lower() == child_last_name.lower()) &
-    #             (self.model.combined_data['Child_Date_of_Birth'] == child_dob)
-    #         ]
-
-    #         if not child_data.empty:
-    #             logging.info("Child data found.")
-    #             return child_data.iloc[0]
-    #         else:
-    #             logging.error("Child data not found.")
-    #             messagebox.showerror("Error", "Child data not found.")
-    #             return None
-    #     except Exception as e:
-    #         logging.error(f"Error retrieving child data: {e}")
-    #         messagebox.showerror("Error", f"Error retrieving child data: {e}")
-    #         return None
+            if not child_data.empty:
+                logging.info("Child data found.")
+                return child_data.iloc[0]
+            else:
+                logging.error("Child data not found.")
+                messagebox.showerror("Error", "Child data not found.")
+                return None
+        except Exception as e:
+            logging.error(f"Error retrieving child data: {e}")
+            messagebox.showerror("Error", f"Error retrieving child data: {e}")
+            return None
 
     def refresh_view(self):
         """Refresh the CombinedDataView TreeView with the latest combined data."""
@@ -115,7 +111,7 @@ class CombinedDataController(Controller):
                 logging.error(f"Error refreshing combined data view: {e}")
                 messagebox.showerror("Error", f"Failed to refresh view: {e}")
 
-    def after_nurse_assignment(self): #????
+    def after_nurse_assignment(self):
         if hasattr(self.root, 'combined_data_controller'):
             self.root.combined_data_controller.refresh_view()
 

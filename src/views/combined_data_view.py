@@ -2,39 +2,34 @@ import tkinter as tk
 import pandas as pd
 import logging
 from tkinter import ttk, messagebox
-from views.view import View
 
-class CombinedDataView(View):
-    '''
+class CombinedDataView:
+    """
     View class for displaying the combined data in a Treeview,
     plus search, sort by DOB, nurse stats, batch assign, unmatched, etc.
-    '''
-    # Class Constants
-    WINDOW_TITLE = "Combined Data"
-    WINDOW_WIDTH = 1000
-    WINDOW_HEIGHT = 600
+    """
 
-    def __init__(self, root: tk.Tk, controller, 
-                 combined_data: pd.DataFrame, unmatched_count: int=0):
-        super().__init__(root, controller)
+    def __init__(self, root, controller, combined_data, unmatched_count=0):
+        self.root = root
+        self.controller = controller
 
         self.combined_data = combined_data.copy()
         self.filtered_data = combined_data.copy()
 
-        self.sort_ascending: bool = True
-        self.unmatched_count: int = unmatched_count
+        self.sort_ascending = True
+        self.unmatched_count = unmatched_count
 
         self.create_view()
         logging.info("CombinedDataView initialized.")
 
     def create_view(self):
-        combined_window = tk.Toplevel(self.root)
-        combined_window.title(CombinedDataView.WINDOW_TITLE)
-        combined_window.geometry(f"{CombinedDataView.WINDOW_WIDTH}x{CombinedDataView.WINDOW_HEIGHT}")
-        combined_window.minsize(CombinedDataView.WINDOW_WIDTH, CombinedDataView.WINDOW_HEIGHT)
+        self.combined_window = tk.Toplevel(self.root)
+        self.combined_window.title("Combined Data")
+        self.combined_window.geometry("1000x600")
+        self.combined_window.minsize(800, 400)
 
         # Top frame: search, sort, nurse stats
-        top_frame = tk.Frame(combined_window)
+        top_frame = tk.Frame(self.combined_window)
         top_frame.pack(fill=tk.X, padx=5, pady=5)
 
         self.search_var = tk.StringVar()
@@ -58,7 +53,7 @@ class CombinedDataView(View):
 
         # Treeview
         columns = ("Mother_ID", "First_Name", "Last_Name", "Date_of_Birth", "Assigned_Nurse")
-        self.treeview = ttk.Treeview(combined_window, columns=columns, show='headings')
+        self.treeview = ttk.Treeview(self.combined_window, columns=columns, show='headings')
 
         # Set column headings with proper labels
         column_headers = {
@@ -73,7 +68,7 @@ class CombinedDataView(View):
             self.treeview.heading(col, text=column_headers[col])
             self.treeview.column(col, anchor="center", width=150)
 
-        scrollbar = ttk.Scrollbar(combined_window, orient="vertical", command=self.treeview.yview)
+        scrollbar = ttk.Scrollbar(self.combined_window, orient="vertical", command=self.treeview.yview)
         self.treeview.configure(yscrollcommand=scrollbar.set)
         scrollbar.pack(side='right', fill='y')
 
@@ -86,7 +81,7 @@ class CombinedDataView(View):
         self.update_treeview(self.filtered_data)
 
         # Bottom frame: display in excel, batch assign, generate report, unmatched
-        bottom_frame = tk.Frame(combined_window)
+        bottom_frame = tk.Frame(self.combined_window)
         bottom_frame.pack(fill=tk.X, pady=5)
 
         excel_btn = tk.Button(bottom_frame, text="Display in Excel",
@@ -122,7 +117,7 @@ class CombinedDataView(View):
             dup_count_label.place(relx=1.0, rely=0.0, anchor="ne")
 
 
-    def update_treeview(self, data: pd.DataFrame):
+    def update_treeview(self, data):
         """Update treeview with fresh data."""
         # Clear existing items
         self.clear_treeview()
@@ -182,7 +177,7 @@ class CombinedDataView(View):
         if not s:
             self.filtered_data = self.combined_data.copy()
         else:
-            def row_matches(r: pd.Series) -> bool:
+            def row_matches(r):
                 if s in str(r.get('Mother_ID','')).lower():
                     return True
                 cname = f"{r.get('Child_First_Name','')} {r.get('Child_Last_Name','')}".lower()
