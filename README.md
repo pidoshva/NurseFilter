@@ -3,18 +3,18 @@
 The Excel Data Combiner Application is a user-friendly GUI-based tool designed to merge data from two Excel files—typically hospital and Medicaid datasets—into a unified dataset. It enables users to search, filter, and inspect profiles, view unmatched data, assign nurses, and analyze nurse statistics. With additional features like encryption and decryption, it ensures secure handling of sensitive information.
 
 ## Features
-- - **Read Two Excel Files:** Load hospital and Medicaid datasets for merging.
-- - **Combine Data:** Merge datasets based on Mother's First Name, Last Name, and Child's Date of Birth.
-- - **Search & Filter:** Search and filter combined data by name, ID, or Date of Birth.
-- - **View Detailed Profiles:** Double-click an entry to view detailed information, including mother and child details.
-- - **Copy to Clipboard:** Copy profile details for documentation and sharing.
-- - **Excel Export:** Save the combined dataset as `combined_matched_data.xlsx`.
-- - **Unmatched Data Inspection:** View and explore unmatched data records.
-- - **Nurse Assignment:** Assign nurses to children and manage nurse statistics.
-- - **Nurse Statistics:** Analyze assigned nurses, view most/least assigned nurses, and inspect their assigned children.
-- - **Encryption & Decryption:** Encrypt and decrypt Excel files automatically for added security.
-- - **Generate Encryption Key:** Generate a key to secure data files.
-- - **Detailed Logging:** Track application activity for operational insights.
+- **Read Two Excel Files:** Load hospital and Medicaid datasets for merging.
+-  **Combine Data:** Merge datasets based on Mother's First Name, Last Name, and Child's Date of Birth.
+-  **Search & Filter:** Search and filter combined data by name, ID, or Date of Birth.
+-  **View Detailed Profiles:** Double-click an entry to view detailed information, including mother and child details.
+-  **Copy to Clipboard:** Copy profile details for documentation and sharing.
+-  **Excel Export:** Save the combined dataset as `combined_matched_data.xlsx`.
+-  **Unmatched Data Inspection:** View and explore unmatched data records.
+-  **Nurse Assignment:** Assign nurses to children and manage nurse statistics.
+-  **Nurse Statistics:** Analyze assigned nurses, view most/least assigned nurses, and inspect their assigned children.
+-  **Encryption & Decryption:** Encrypt and decrypt Excel files automatically for added security.
+-  **Generate Encryption Key:** Generate a key to secure data files.
+-  **Detailed Logging:** Track application activity for operational insights.
 
 ## Prerequisites
 
@@ -22,14 +22,14 @@ Ensure the following requirements are met to run the application:
 
 - **Python 3.x** installed.
 - Required Python Libraries:
-- - `pandas`
-- - `tkinter`
-- - `openpyxl`
-- - `logging`
-- - `reportlab`
-- - `cryptography`
-- - `platform`
-- - `app_crypto`
+-  `pandas`
+-  `tkinter`
+-  `openpyxl`
+-  `logging`
+-  `reportlab`
+-  `cryptography`
+-  `platform`
+-  `app_crypto`
 
 You can install the required dependencies using pip:
 ``` bash
@@ -51,15 +51,15 @@ python app.py
 ```
 
 2. The GUI will open with buttons to:
-- - **Read Excel File 1:** Load the first dataset (e.g., hospital data).
-- - **Read Excel File 2:** Load the second dataset (e.g., Medicaid data).
-- - **Combine Data:** Merge the datasets for analysis.
-- - **Search & Filter:** Search entries by Mother ID, Child Name, or Date of Birth.
-- - **View Profile:** Double-click an entry to view detailed information.
-- - **Unmatched Data:** Inspect unmatched data records.
-- - **Nurse Assignment:** Assign nurses to children and analyze nurse-related statistics.
-- - **View Nurse Statistics:** View assigned nurses and statistics about them.
-- - **Generate Report:** Generate statistical report about children and nurses (with an ability to export in pdf).
+-  **Read Excel File 1:** Load the first dataset (e.g., hospital data).
+-  **Read Excel File 2:** Load the second dataset (e.g., Medicaid data).
+-  **Combine Data:** Merge the datasets for analysis.
+-  **Search & Filter:** Search entries by Mother ID, Child Name, or Date of Birth.
+-  **View Profile:** Double-click an entry to view detailed information.
+-  **Unmatched Data:** Inspect unmatched data records.
+-  **Nurse Assignment:** Assign nurses to children and analyze nurse-related statistics.
+-  **View Nurse Statistics:** View assigned nurses and statistics about them.
+-  **Generate Report:** Generate statistical report about children and nurses (with an ability to export in pdf).
 
 ## Application Workflow
 
