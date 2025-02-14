@@ -1,12 +1,13 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk
+import pandas as pd
 
 class DuplicateDataView:
     """
     View class for displaying duplicate data in a Treeview.
     """
 
-    def __init__(self, root, controller, duplicate_data):
+    def __init__(self, root: tk.Tk, controller, duplicate_data: pd.DataFrame):
         self.root = root
         self.controller = controller
         self.duplicate_data = duplicate_data

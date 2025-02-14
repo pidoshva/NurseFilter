@@ -5,7 +5,7 @@ class ProfileView:
     """
     View class for displaying a single child's profile.
     """
-    def __init__(self, root, controller, child_data):
+    def __init__(self, root: tk.Tk, controller, child_data: pd.Series):
         self.root = root
         self.controller = controller
         self.child_data = child_data

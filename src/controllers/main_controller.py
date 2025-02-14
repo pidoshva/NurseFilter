@@ -20,10 +20,10 @@ class MainController:
     Wires up the Model (DataModel) and the Views (MainView, CombinedDataView, ProfileView, etc.).
     """
 
-    def __init__(self, root):
+    def __init__(self, root: tk.Tk):
         self.root = root
-        self.model = DataModel()
-        self.view = MainView(root, self)
+        self.model: DataModel = DataModel()
+        self.view: MainView = MainView(root, self)
         # Create and store the combined data controller
         self.root.combined_data_controller = CombinedDataController(root, self.model)
         logging.info("MainController initialized.")

@@ -13,6 +13,7 @@ class DataModel:
         self.data_frames = []
         self.combined_data = None
         self.unmatched_data = None
+        self.duplicate_data = None
         logging.info("DataModel initialized.")
 
     # Encryption

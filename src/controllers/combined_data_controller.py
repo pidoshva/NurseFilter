@@ -2,13 +2,14 @@
 
 import tkinter as tk
 import logging
-from views.combined_data_view import CombinedDataView
 from controllers.profile_controller import ProfileController
 from tkinter import messagebox
 import pandas as pd
 import os
 import platform
 
+from models.data_model import DataModel
+from views.combined_data_view import CombinedDataView
 from views.unmatched_data_view import UnmatchedDataView
 from views.duplicate_data_view import DuplicateDataView
 
@@ -16,10 +17,10 @@ class CombinedDataController:
     """
     Controller class for combined data view.
     """
-    def __init__(self, root, model):
+    def __init__(self, root: tk.Tk, model: DataModel):
         self.root = root
         self.model = model
-        self.view = None
+        self.view: CombinedDataView = None
         logging.info("CombinedDataController initialized.")
 
     def show_combined_data(self):
@@ -54,7 +55,6 @@ class CombinedDataController:
         """
         selected_data = view.get_selected_child_data()
         if selected_data is not None:
-            from controllers.profile_controller import ProfileController
             profile_controller = ProfileController(self.root, selected_data, self.model)
             profile_controller.show_profile()
         else:

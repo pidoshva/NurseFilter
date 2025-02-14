@@ -1,6 +1,7 @@
 import tkinter as tk
 import logging
 import os
+import pandas as pd
 from tkinter import ttk, messagebox
 
 class UnmatchedDataView:
@@ -8,7 +9,7 @@ class UnmatchedDataView:
     View class for displaying unmatched data in a collapsible Treeview.
     """
 
-    def __init__(self, root, controller, unmatched_data):
+    def __init__(self, root: tk.Tk, controller, unmatched_data: pd.DataFrame):
         self.root = root
         self.controller = controller
         self.unmatched_data = unmatched_data

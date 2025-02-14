@@ -9,7 +9,7 @@ class CombinedDataView:
     plus search, sort by DOB, nurse stats, batch assign, unmatched, etc.
     """
 
-    def __init__(self, root, controller, combined_data, unmatched_count=0):
+    def __init__(self, root:tk.Tk, controller , combined_data: pd.DataFrame, unmatched_count=0):
         self.root = root
         self.controller = controller
 
@@ -117,7 +117,7 @@ class CombinedDataView:
             dup_count_label.place(relx=1.0, rely=0.0, anchor="ne")
 
 
-    def update_treeview(self, data):
+    def update_treeview(self, data: pd.DataFrame):
         """Update treeview with fresh data."""
         # Clear existing items
         self.clear_treeview()
@@ -177,7 +177,7 @@ class CombinedDataView:
         if not s:
             self.filtered_data = self.combined_data.copy()
         else:
-            def row_matches(r):
+            def row_matches(r: pd.Series):
                 if s in str(r.get('Mother_ID','')).lower():
                     return True
                 cname = f"{r.get('Child_First_Name','')} {r.get('Child_Last_Name','')}".lower()

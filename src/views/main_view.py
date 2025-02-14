@@ -10,7 +10,7 @@ class MainView:
       - Load Existing File
     """
 
-    def __init__(self, root, controller):
+    def __init__(self, root: tk.Tk, controller):
         self.root = root
         self.controller = controller
         self.root.title("Excel Combiner (MVC)")
