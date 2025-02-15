@@ -71,6 +71,8 @@ class ProfileView:
         # Assigned Nurse
         tk.Label(frame, text="Assigned Nurse", font=("Arial",14,"bold")).pack(anchor='w', pady=(10,0))
         nurse = self.child_data.get('Assigned_Nurse','None')
+        if pd.isna(nurse):
+            nurse = "None"
         self.nurse_info_text = f"Name: {nurse}"
         self.nurse_label = tk.Label(frame, text=self.nurse_info_text, anchor='w', justify=tk.LEFT, font=("Arial",12))
         self.nurse_label.pack(anchor='w', pady=(5,10))
