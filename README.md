@@ -98,7 +98,7 @@ Displays detailed information including:
 Includes unmatched data with origin specified and an ability to view the details in a drop down format. 
 
 ### Duplicates Detection
-Ability to detect abd display duplicates in a bew window.
+Ability to detect abd display duplicates in a new window.
 
 ### Nurse Statistics Window
 - **Most Assigned Nurse:** Displays the name of the most assigned nurse.
