@@ -10,10 +10,10 @@ class DataModel:
     """
 
     def __init__(self):
-        self.data_frames = []
-        self.combined_data = None
-        self.unmatched_data = None
-        self.duplicate_data = None
+        self.data_frames: list[pd.DataFrame] = []
+        self.combined_data: pd.DataFrame = None
+        self.unmatched_data: pd.DataFrame = None
+        self.duplicate_data: pd.DataFrame = None
         logging.info("DataModel initialized.")
 
     # Encryption

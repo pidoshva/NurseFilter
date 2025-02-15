@@ -1,5 +1,3 @@
-# controllers/combined_data_controller.py
-
 import tkinter as tk
 import logging
 from controllers.profile_controller import ProfileController

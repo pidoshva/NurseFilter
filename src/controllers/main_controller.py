@@ -10,7 +10,7 @@ from models.data_model import DataModel
 from views.main_view import MainView
 from views.combined_data_view import CombinedDataView
 from views.profile_view import ProfileView
-
+from controllers.profile_controller import ProfileController
 from controllers.combined_data_controller import CombinedDataController
 
 
@@ -95,7 +95,6 @@ class MainController:
     def show_child_profile(self, event, view):
         selected_data = view.get_selected_child_data()
         if selected_data is not None:
-            from controllers.profile_controller import ProfileController
             profile_controller = ProfileController(self.root, selected_data, self.model)
             profile_controller.show_profile()
         else:

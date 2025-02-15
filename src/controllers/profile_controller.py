@@ -10,7 +10,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 
 class ProfileController:
-    def __init__(self, root, child_data, model):
+    def __init__(self, root: tk.Tk, child_data, model):
         self.root = root
         self.child_data = child_data
         self.model = model
