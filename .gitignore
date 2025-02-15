@@ -6,3 +6,5 @@
 *.xlsx
 
 # Specific files (if needed)
+*venv/
+/venv

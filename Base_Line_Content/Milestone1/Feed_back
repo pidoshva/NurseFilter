@@ -1,0 +1,30 @@
+Customer Feedback
+User interface: Added new functions(affordances in place).
+•	Added report feature for reporting which nurses are assigned to which children
+•	Added batch_Assign function to assign families by City and zipcodes
+•	Added Duplicate function to find duplications of families on list.
+      To do:
+•	More testing is required for batch_Assign, Although zipcode, city are available, it serves no purpose since these categories are not available on the combined list and therefore not present on main window.
+•	The client has asked to add zip code, Address, phone numbers, as part of the categories.
+•	Duplicate function works, The Director of Nurses requires some way to flag the first time those duplicates have been found.
+•	The added Report feature works for one nurse and displays the assigned nurse for the given family. However, it would be good to include the categories mentioned above to the children profile.
+•	Add a function to open an old combine list excel file to identify assigned Nurses.
+Filter list: Options are in process.
+       To do:
+•	Add more categories to the combined list of families(Address, zipcode, Phone number).
+•	Fix the problem of viewing and editing old lists.
+•	Duplicates lists should be able to print as a separate excel sheet .
+•	Client also wants to still have access to original lists, keep original list, combine list and duplicates lists separate.
+Print list:  requirement partially met
+•	The print function is made available after combining and filtering of lists.
+•	
+To do:
+•	Print function or export excel function works with Nurses Families and their profiles but an additional print or export should be included for duplicates lists.
+Find Duplicates:  expectation partial
+  It finds the non duplicates.
+To do:  
+•	Add  an option to store duplicates. And flag them
+Design App to process more than 5000 families
+•	 Test for stress test and capacity to handle the amount of families names required
+  To do:
+•	Add threads or more efficient ways to process families efficiently.
