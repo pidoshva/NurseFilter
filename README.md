@@ -1,4 +1,4 @@
-# Excel Data Combiner Application
+# Excel Data Combiner Application (MVC)
 
 The Excel Data Combiner Application is a user-friendly GUI-based tool designed to merge data from two Excel files—typically hospital and Medicaid datasets—into a unified dataset. It enables users to search, filter, and inspect profiles, view unmatched data, assign nurses, and analyze nurse statistics. With additional features like encryption and decryption, it ensures secure handling of sensitive information.
 
@@ -97,6 +97,9 @@ Displays detailed information including:
 ### Unmatched Data Window
 Includes unmatched data with origin specified and an ability to view the details in a drop down format. 
 
+### Duplicates Detection
+Ability to detect abd display duplicates in a bew window.
+
 ### Nurse Statistics Window
 - **Most Assigned Nurse:** Displays the name of the most assigned nurse.
 - **Least Assigned Nurse:** Displays the name of the least assigned nurse.
@@ -125,14 +128,3 @@ You can run the tests using `pytest` with rich formatting for enhanced readabili
 ``` bash
 pytest --rich --tb=short -v test.py
 ```
-
-## Changes
-- **New GUI Components:** Updated the GUI with a modern layout using ttk.Treeview for better data visualization.
-- **New Copy Functionality:** Added functionality to copy profile information to the clipboard.
-- **Unit Test Integration:** Introduced unit tests using unittest for testing key functions like reading Excel files, data combination, and Excel file generation.
-- **Enhanced Logging:** Added detailed logging for tracking successful operations, warnings, and errors, visible in the console.
-- **Improved Data Normalization:** Enhanced the data merging process by normalizing names and standardizing date formats.
-- **Error Handling:** Implemented better error handling for file operations and merging errors.
-- **Nurse Assignment:** Assign and analyze nurse assignments.
-- **Security Features:** File encryption and decryption for added data protection.
-- **Report Generation:** Generates a report containing nurse data and children data statistics.
