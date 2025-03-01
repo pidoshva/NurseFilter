@@ -25,7 +25,7 @@ class MainController:
         self.model = DataModel()
         self.view = MainView(root, self)
         # Create and store the combined data controller
-        self.combined_data_controller = CombinedDataController(root, self.model)
+        self.root.combined_data_controller = CombinedDataController(root, self.model)
         logging.info("MainController initialized.")
 
     def on_closing(self):
@@ -60,15 +60,20 @@ class MainController:
 
     # 2. Combining Data
     def combine_data(self):
-        if self.model.combine_data():
-            logging.info("Data combined successfully.")
-            self.load_combined_data()
-
+        combined_df = self.model.combine_data()
+        if combined_df is None or combined_df.empty:
+            return
+        
+        # Just use the CombinedDataController to show the view
+        if combined_df is not None and not combined_df.empty:
+            unmatched_count = len(self.model.unmatched_data) if self.model.unmatched_data is not None else 0
+            self.root.combined_data_controller.show_combined_data()
 
     def load_combined_data(self):
-        if self.model.load_combined_data():
-            logging.info("Combined data loaded successfully.")
-            self.combined_data_controller.show_combined_data()
+        combined_df = self.model.load_combined_data()
+        if combined_df is not None and not combined_df.empty:
+            unmatched_count = len(self.model.unmatched_data) if self.model.unmatched_data is not None else 0
+            CombinedDataView(self.root, self, combined_df, unmatched_count=unmatched_count)
 
     # 3. Display Excel
     def display_in_excel(self):
@@ -236,12 +241,14 @@ class MainController:
 
     # 7. Viewing Unmatched
     def view_unmatched_data(self):
-        '''
+        """
         Calls the unmatched data display function from CombinedDataController.
-        '''
-        logging.info("Calling view_unmatched_data in CombinedDataController.")
-        self.combined_data_controller.view_unmatched_data()
-        
+        """
+        if self.root.combined_data_controller is not None:
+            logging.info("Calling view_unmatched_data in CombinedDataController.")
+            self.root.combined_data_controller.view_unmatched_data()
+        else:
+            logging.error("CombinedDataController is not initialized!")
 
 
     # 8. Generating a Report

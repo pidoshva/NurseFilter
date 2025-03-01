@@ -13,7 +13,6 @@ class DataModel:
         self.data_frames = []
         self.combined_data = None
         self.unmatched_data = None
-        self.duplicate_data = None
         logging.info("DataModel initialized.")
 
     # Encryption
@@ -67,7 +66,7 @@ class DataModel:
     def combine_data(self):
         if len(self.data_frames) < 2:
             messagebox.showerror("Error", "Please load two Excel files before combining data.")
-            return False
+            return None
         try:
             db_df = self.data_frames[0].copy()
             med_df = self.data_frames[1].copy()
@@ -151,19 +150,19 @@ class DataModel:
 
             combined.to_excel('combined_matched_data.xlsx', index=False)
             self.combined_data = combined
-            return True
+            return combined
 
         except Exception as e:
             logging.error(f"Error combining data: {e}")
             messagebox.showerror("Error", f"Error combining data: {e}")
-            return False
+            return None
 
 
     def load_combined_data(self):
         path = 'combined_matched_data.xlsx'
         if not os.path.exists(path):
             messagebox.showerror("Error", "No combined data file found. Please combine data first.")
-            return False
+            return None
 
         try:
             if self.is_file_encrypted(path):
@@ -185,11 +184,11 @@ class DataModel:
             else:
                 self.unmatched_data = pd.DataFrame()
 
-            return True
+            return df
 
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load combined data: {e}")
-            return False
+            return None
 
 
     # Nurse assignment
