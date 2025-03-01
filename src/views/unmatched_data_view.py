@@ -2,6 +2,7 @@ import tkinter as tk
 import logging
 import os
 from tkinter import ttk, messagebox
+from views.view_constants import ViewStyles
 
 class UnmatchedDataView:
     """
@@ -17,9 +18,9 @@ class UnmatchedDataView:
         self.create_view()
 
     def create_view(self):
-        self.window = tk.Toplevel(self.root)
+        self.window = tk.Toplevel(self.root, bg=ViewStyles.WINDOW_COLOR)
         self.window.title("Unmatched Data")
-        self.window.geometry("900x500")
+        self.window.geometry(f"{ViewStyles.UD_WINDOW_WIDTH}x{ViewStyles.UD_WINDOW_HEIGHT}")
 
         # Define primary columns to display initially
         primary_columns = ["Source", "Child_ID", "Mother_First_Name", "Mother_Last_Name"]
@@ -80,6 +81,6 @@ class UnmatchedDataView:
             else:
                 messagebox.showerror("Error", "Unmatched data file does not exist.")
 
-        tk.Button(self.window, text="View in Excel", command=view_in_excel).pack(pady=10)
+        tk.Button(self.window, text="View in Excel", command=view_in_excel, bg=ViewStyles.WINDOW_BUTTON_COLOR).pack(pady=10)
 
         logging.info("Unmatched data window loaded successfully.")

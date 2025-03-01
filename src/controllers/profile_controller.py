@@ -8,6 +8,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
+from views.view_constants import ViewStyles
 
 class ProfileController:
     def __init__(self, root, child_data, model):
@@ -23,13 +24,13 @@ class ProfileController:
 
     def assign_nurse(self):
         logging.info("Assign Nurse button clicked.")
-        assign_win = tk.Toplevel(self.root)
+        assign_win = tk.Toplevel(self.root, bg=ViewStyles.WINDOW_COLOR, padx=10, pady=10)
         assign_win.title(f"Assign Nurse to {self.child_data['Child_First_Name']} {self.child_data['Child_Last_Name']}")
-        assign_win.geometry("300x150")
+        assign_win.geometry(f"{ViewStyles.AN_WINDOW_WIDTH}x{ViewStyles.AN_WINDOW_HEIGHT}")
 
         tk.Label(assign_win, text="Enter Nurse Name:").pack(pady=5)
         nurse_var = tk.StringVar()
-        tk.Entry(assign_win, textvariable=nurse_var).pack(pady=5)
+        tk.Entry(assign_win, textvariable=nurse_var, bg=ViewStyles.WINDOW_ENTRY_COLOR).pack(pady=5)
 
         def save_nurse():
             nurse_name = nurse_var.get().strip()
@@ -69,7 +70,7 @@ class ProfileController:
                 logging.warning("Nurse name empty.")
                 messagebox.showerror("Error", "Nurse name cannot be empty.")
 
-        tk.Button(assign_win, text="Save", command=save_nurse).pack(pady=5)
+        tk.Button(assign_win, text="Save", command=save_nurse, bg=ViewStyles.WINDOW_BUTTON_COLOR).pack(pady=5)
 
     def copy_to_clipboard(self):
         mother = self.view.get_mother_info_text()
