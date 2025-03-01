@@ -2,13 +2,13 @@ import tkinter as tk
 import pandas as pd
 import logging
 from tkinter import ttk, messagebox
+from views.view_constants import ViewStyles
 
 class CombinedDataView:
     """
     View class for displaying the combined data in a Treeview,
     plus search, sort by DOB, nurse stats, batch assign, unmatched, etc.
     """
-
     def __init__(self, root, controller, combined_data, unmatched_count=0):
         self.root = root
         self.controller = controller
@@ -23,37 +23,39 @@ class CombinedDataView:
         logging.info("CombinedDataView initialized.")
 
     def create_view(self):
-        self.combined_window = tk.Toplevel(self.root)
+        self.combined_window = tk.Toplevel(self.root, bg=ViewStyles.WINDOW_COLOR)
         self.combined_window.title("Combined Data")
-        self.combined_window.geometry("1000x600")
-        self.combined_window.minsize(800, 400)
+        self.combined_window.configure(background=ViewStyles.WINDOW_COLOR )
+        self.combined_window.geometry(f"{ViewStyles.CD_WINDOW_WIDTH}x{ViewStyles.CD_WINDOW_HEIGHT}")
+        self.combined_window.minsize(ViewStyles.CD_WINDOW_WIDTH, ViewStyles.CD_WINDOW_HEIGHT)
 
         # Top frame: search, sort, nurse stats
-        top_frame = tk.Frame(self.combined_window)
+        top_frame = tk.Frame(self.combined_window, bg=ViewStyles.WINDOW_COLOR)
         top_frame.pack(fill=tk.X, padx=5, pady=5)
 
         self.search_var = tk.StringVar()
-        search_entry = tk.Entry(top_frame, textvariable=self.search_var)
+        search_entry = tk.Entry(top_frame, textvariable=self.search_var, bg=ViewStyles.WINDOW_ENTRY_COLOR)
         search_entry.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
 
-        search_button = tk.Button(top_frame, text="Search", command=self.search_data)
+        search_button = tk.Button(top_frame, text="Search", command=self.search_data, bg=ViewStyles.WINDOW_BUTTON_COLOR)
         search_button.pack(side=tk.LEFT, padx=5)
 
         # Sort by DOB
-        self.sort_button = tk.Button(top_frame, text="Sort by DOB ▲", command=self.sort_by_dob)
+        self.sort_button = tk.Button(top_frame, text="Sort by DOB ▲", command=self.sort_by_dob, bg=ViewStyles.WINDOW_BUTTON_COLOR)
         self.sort_button.pack(side=tk.LEFT, padx=5)
 
         # Nurse Statistics
         nurse_stats_button = tk.Button(
             top_frame, 
             text="Nurse Statistics",
-            command=self.controller.show_nurse_statistics
+            command=self.controller.show_nurse_statistics,
+            bg=ViewStyles.WINDOW_BUTTON_COLOR
         )
         nurse_stats_button.pack(side=tk.LEFT, padx=5)
 
         # Treeview
         columns = ("Mother_ID", "First_Name", "Last_Name", "Date_of_Birth", "Assigned_Nurse")
-        self.treeview = ttk.Treeview(self.combined_window, columns=columns, show='headings')
+        self.treeview = ttk.Treeview(self.combined_window, columns=columns, show='headings', selectmode='browse')
 
         # Set column headings with proper labels
         column_headers = {
@@ -81,25 +83,29 @@ class CombinedDataView:
         self.update_treeview(self.filtered_data)
 
         # Bottom frame: display in excel, batch assign, generate report, unmatched
-        bottom_frame = tk.Frame(self.combined_window)
+        bottom_frame = tk.Frame(self.combined_window, bg=ViewStyles.WINDOW_COLOR)
         bottom_frame.pack(fill=tk.X, pady=5)
 
         excel_btn = tk.Button(bottom_frame, text="Display in Excel",
-                              command=self.controller.display_in_excel)
+                              command=self.controller.display_in_excel,
+                              bg=ViewStyles.WINDOW_BUTTON_COLOR)
         excel_btn.pack(side=tk.LEFT, padx=10)
 
         batch_btn = tk.Button(bottom_frame, text="Batch Assign Nurses",
-                              command=self.controller.batch_assign_nurses)
+                              command=self.controller.batch_assign_nurses,
+                              bg=ViewStyles.WINDOW_BUTTON_COLOR)
         batch_btn.pack(side=tk.LEFT, padx=10)
 
         report_btn = tk.Button(bottom_frame, text="Generate Report",
-                               command=self.controller.generate_report)
+                               command=self.controller.generate_report,
+                               bg=ViewStyles.WINDOW_BUTTON_COLOR)
         report_btn.pack(side=tk.LEFT, padx=10)
 
         # If there are unmatched rows, show a button w/ a red badge
         if self.unmatched_count > 0:
             unmatched_button = tk.Button(bottom_frame, text="View Unmatched Data",
-                                         command=self.controller.view_unmatched_data)
+                                         command=self.controller.view_unmatched_data,
+                                         bg=ViewStyles.WINDOW_BUTTON_COLOR)
             unmatched_button.pack(side=tk.LEFT, padx=10)
             # Badge
             count_label = tk.Label(unmatched_button, text=str(self.unmatched_count),
@@ -108,7 +114,7 @@ class CombinedDataView:
 
         # If there are duplicate rows, show a button with a blue badge
         if self.controller.model.duplicate_data is not None and not self.controller.model.duplicate_data.empty:
-            duplicate_button = tk.Button(bottom_frame, text="View Duplicate Data", command=self.controller.view_duplicate_data)
+            duplicate_button = tk.Button(bottom_frame, text="View Duplicate Data", command=self.controller.view_duplicate_data, bg=ViewStyles.WINDOW_BUTTON_COLOR)
             duplicate_button.pack(side=tk.LEFT, padx=10)
             # Badge
             duplicate_count = int((len(self.controller.model.duplicate_data))/2)

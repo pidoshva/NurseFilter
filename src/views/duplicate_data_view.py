@@ -1,11 +1,11 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+from views.view_constants import ViewStyles
 
 class DuplicateDataView:
     """
     View class for displaying duplicate data in a Treeview.
     """
-
     def __init__(self, root, controller, duplicate_data):
         self.root = root
         self.controller = controller
@@ -14,9 +14,9 @@ class DuplicateDataView:
         self.create_view()
 
     def create_view(self):
-        self.window = tk.Toplevel(self.root)
+        self.window = tk.Toplevel(self.root, bg=ViewStyles.WINDOW_COLOR)
         self.window.title("Duplicate Data")
-        self.window.geometry("900x500")
+        self.window.geometry(f"{ViewStyles.DD_WINDOW_WIDTH}x{ViewStyles.DD_WINDOW_HEIGHT}")
 
         columns = list(self.duplicate_data.columns)
 
@@ -31,4 +31,4 @@ class DuplicateDataView:
             values = [row[col] for col in columns]
             self.tree.insert("", "end", values=values)
 
-        tk.Button(self.window, text="Close", command=self.window.destroy).pack(pady=10)
+        tk.Button(self.window, text="Close", command=self.window.destroy, bg=ViewStyles.WINDOW_BUTTON_COLOR).pack(pady=10)

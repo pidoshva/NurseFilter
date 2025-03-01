@@ -1,5 +1,6 @@
 import tkinter as tk
 import pandas as pd
+from views.view_constants import ViewStyles
 
 class ProfileView:
     """
@@ -20,12 +21,12 @@ class ProfileView:
         self.create_view()
 
     def create_view(self):
-        self.profile_window = tk.Toplevel(self.root)
+        self.profile_window = tk.Toplevel(self.root, bg=ViewStyles.WINDOW_COLOR, padx=10, pady=10)
         first = self.child_data.get('Child_First_Name','')
         last = self.child_data.get('Child_Last_Name','')
         self.profile_window.title(f"Profile of {first} {last}")
 
-        frame = tk.Frame(self.profile_window, padx=10, pady=10)
+        frame = tk.Frame(self.profile_window, padx=10, pady=10,)
         frame.pack(fill=tk.BOTH, expand=True)
 
         # Mother's Info
@@ -78,9 +79,9 @@ class ProfileView:
         self.nurse_label.pack(anchor='w', pady=(5,10))
 
         # Buttons
-        tk.Button(frame, text="Assign Nurse", command=self.controller.assign_nurse).pack(pady=(10,5))
-        tk.Button(frame, text="Copy Profile Info", command=self.controller.copy_to_clipboard).pack(pady=(5,5))
-        tk.Button(frame, text="Export to PDF", command=self.controller.export_profile_to_pdf).pack(pady=(5,5))
+        tk.Button(frame, text="Assign Nurse", command=self.controller.assign_nurse, bg=ViewStyles.WINDOW_BUTTON_COLOR).pack(pady=(10,5))
+        tk.Button(frame, text="Copy Profile Info", command=self.controller.copy_to_clipboard, bg=ViewStyles.WINDOW_BUTTON_COLOR).pack(pady=(5,5))
+        tk.Button(frame, text="Export to PDF", command=self.controller.export_profile_to_pdf, bg=ViewStyles.WINDOW_BUTTON_COLOR).pack(pady=(5,5))
 
     def update_nurse_info(self, text):
         self.nurse_info_text = text
