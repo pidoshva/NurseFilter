@@ -1,0 +1,61 @@
+import logging
+import os
+import tkinter as tk
+from tkinter import messagebox, filedialog
+from views.initial_view import InitialView
+
+
+class InitialController:
+    """
+    The main controller for the application.
+    Wires up the Model (DataModel) and the Views (InitialView, CombinedDataView, ProfileView, etc.).
+    """
+
+    def __init__(self, root, model, main_controller):
+        self.root = root
+        self.model = model 
+        self.view = InitialView(root, self)
+        self.MainController = main_controller
+        logging.info("InitialController initialized.")
+
+    def on_closing(self):
+        """
+        Called when the user closes the main window.
+        Optionally encrypt 'combined_matched_data.xlsx' or do cleanup.
+        """
+        logging.info("Closing App")
+        filepath = 'combined_matched_data.xlsx'
+        # If the file exists, try to encrypt it
+        if os.path.exists(filepath):
+            self.model.encrypt_file(filepath)
+        self.root.destroy()
+
+    # 1. Reading Excel Files
+    def read_excel_file(self):
+        logging.info("Selecting Excel file...")
+        filepath = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx *.xls")])
+        if not filepath:
+            return
+        # Decrypt if needed
+        if self.model.is_file_encrypted(filepath):
+            if not self.model.decrypt_file(filepath):
+                return
+        self.model.read_excel_file(filepath)
+        # Re-encrypt
+        try:
+            self.model.encrypt_file(filepath)
+        except Exception as e:
+            logging.warning(f"Error re-encrypting file: {e}")
+            messagebox.showwarning("Warning", "Error re-encrypting file.")
+
+    # 2. Combining Data
+    def combine_data(self):
+        if self.model.combine_data():
+            logging.info("Data combined successfully.")
+            self.load_combined_data()
+
+
+    def load_combined_data(self):
+        if self.model.load_combined_data():
+            logging.info("Combined data loaded successfully.")
+            self.MainController.show_combined_data()
