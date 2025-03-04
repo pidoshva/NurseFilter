@@ -7,11 +7,13 @@ from datetime import datetime
 import pandas as pd
 
 from models.data_model import DataModel
+from views.login_view import LoginView
 from views.main_view import MainView
 from views.combined_data_view import CombinedDataView
 from views.profile_view import ProfileView
 
 from controllers.combined_data_controller import CombinedDataController
+from controllers.database_controller import DatabaseController
 
 
 class MainController:
@@ -23,9 +25,10 @@ class MainController:
     def __init__(self, root):
         self.root = root
         self.model = DataModel()
-        self.view = MainView(root, self)
+        self.view = LoginView(root, self)
         # Create and store the combined data controller
         self.combined_data_controller = CombinedDataController(root, self.model)
+        self.database_controller = DatabaseController()
         logging.info("MainController initialized.")
 
     def on_closing(self):
@@ -39,6 +42,34 @@ class MainController:
         if os.path.exists(filepath):
             self.model.encrypt_file(filepath)
         self.root.destroy()
+
+    def login(self, username, password):
+        """
+        Handles login logic.
+        If the username and password are correct, it shows a success message.
+        Otherwise, it shows an error.
+        """
+        login_result = self.database_controller.login_user(username, password)
+
+        if login_result is True:
+            logging.info(f"Login Success: {username}")
+            self.show_main_view()
+        elif login_result is False:
+            logging.error(f"Login failed: Invalid password for {username}")
+            messagebox.showerror("Login Failed", "Invalid username or password")
+        elif login_result is None:
+            logging.error(f"Login failed: Username '{username}' not found")
+            messagebox.showerror("Login Failed", "Username not found")
+
+
+
+    def show_main_view(self):
+        """
+        Transition to the main view after successful login.
+        """
+        logging.info("Transitioning to the main view.")
+        self.view = MainView(self.root, self) 
+        self.view.create_widgets()
 
     # 1. Reading Excel Files
     def read_excel_file(self):
@@ -420,4 +451,3 @@ class MainController:
             messagebox.showerror("Error", "reportlab is not installed.")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to export PDF: {e}")
-
