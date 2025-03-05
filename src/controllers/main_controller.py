@@ -2,19 +2,42 @@ from controllers.combined_data_controller import CombinedDataController
 from controllers.profile_controller import ProfileController
 from controllers.initial_controller import InitialController
 from controllers.nurse_controller import NurseController
+from controllers.login_controller import LoginController
 from models.data_model import DataModel
 import os
 from tkinter import messagebox
 import platform
+import logging
+
+
 
 class MainController:
     def __init__(self, root):
         self.root = root
+        self.root.withdraw() # hack for now to hide when logging in and unhides when logged in
         self.model = DataModel()
-        self.initial_controller = InitialController(self.root, self.model, self)
+        self.login()
 
+    def login(self):
+        self._get_login_controller()
+        
+        
     def on_closing(self):
-        self.initial_controller.on_closing()
+        """
+        Called when the user closes the main window.
+        Optionally encrypt 'combined_matched_data.xlsx' or do cleanup.
+        """
+        logging.info("Closing App")
+        filepath = 'combined_matched_data.xlsx'
+        self.model.encrypt_file(filepath)
+        self.root.destroy()
+
+    def _get_login_controller(self):
+        return LoginController(self.root, self)
+    
+    def _get_initial_controller(self):
+        self.root.deiconify()
+        return InitialController(self.root, self.model, self)
 
     def _get_combined_data_controller(self):
         return CombinedDataController(self.root, self.model, self)
@@ -24,6 +47,10 @@ class MainController:
     
     def _get_nurse_controller(self):
         return NurseController(self.root, self.model, self)
+    
+    def show_initial_view(self):
+        controller = self._get_initial_controller()
+        controller.show_initial_view()
     
     def show_combined_data(self):
         controller = self._get_combined_data_controller()
@@ -69,3 +96,5 @@ class MainController:
                 os.system(f"xdg-open {filepath}")
         except Exception as e:
             messagebox.showerror("Error", f"Error opening Excel file: {e}")
+
+    
