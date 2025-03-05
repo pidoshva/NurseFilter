@@ -14,21 +14,11 @@ class InitialController:
     def __init__(self, root, model, main_controller):
         self.root = root
         self.model = model 
-        self.view = InitialView(root, self)
         self.MainController = main_controller
         logging.info("InitialController initialized.")
 
-    def on_closing(self):
-        """
-        Called when the user closes the main window.
-        Optionally encrypt 'combined_matched_data.xlsx' or do cleanup.
-        """
-        logging.info("Closing App")
-        filepath = 'combined_matched_data.xlsx'
-        # If the file exists, try to encrypt it
-        if os.path.exists(filepath):
-            self.model.encrypt_file(filepath)
-        self.root.destroy()
+    def show_initial_view(self):
+        InitialView(self.root, self)
 
     # 1. Reading Excel Files
     def read_excel_file(self):

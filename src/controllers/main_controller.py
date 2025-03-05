@@ -20,17 +20,6 @@ class MainController:
 
     def login(self):
         self._get_login_controller()
-        
-        
-    def on_closing(self):
-        """
-        Called when the user closes the main window.
-        Optionally encrypt 'combined_matched_data.xlsx' or do cleanup.
-        """
-        logging.info("Closing App")
-        filepath = 'combined_matched_data.xlsx'
-        self.model.encrypt_file(filepath)
-        self.root.destroy()
 
     def _get_login_controller(self):
         return LoginController(self.root, self)
@@ -97,4 +86,12 @@ class MainController:
         except Exception as e:
             messagebox.showerror("Error", f"Error opening Excel file: {e}")
 
-    
+    def on_closing(self):
+            """
+            Called when the user closes the main window.
+            Optionally encrypt 'combined_matched_data.xlsx' or do cleanup.
+            """
+            logging.info("Closing App")
+            filepath = 'combined_matched_data.xlsx'
+            self.model.encrypt_file(filepath)
+            self.root.destroy()
