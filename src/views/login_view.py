@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter import messagebox
 import logging
 
 class LoginView:
@@ -11,7 +10,7 @@ class LoginView:
       - Forgot Password
     """
     def __init__(self, root, controller):
-        self.root = root
+        self.root = tk.Toplevel(root)
         self.controller = controller
         self.root.title("Excel Combiner (MVC)")
         self.create_widgets()
@@ -24,7 +23,7 @@ class LoginView:
         self.controller.login(username, password)
 
     def create_widgets(self):
-        self.root.geometry("300x700")
+        self.root.geometry("300x300")
 
         label_username = tk.Label(self.root, text="Username:")
         label_username.pack(pady=5)
@@ -41,4 +40,6 @@ class LoginView:
         login_button = tk.Button(self.root, text="Login", command=self.login_button)
         login_button.pack(pady=10)
 
+    def close(self):
+        self.root.destroy()
     

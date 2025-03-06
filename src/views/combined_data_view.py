@@ -75,7 +75,7 @@ class CombinedDataView:
         self.treeview.pack(fill=tk.BOTH, expand=True)
 
         # Double-click => show child profile
-        self.treeview.bind("<Double-1>", lambda e: self.controller.show_child_profile(e, self))
+        self.treeview.bind("<Double-1>", lambda e: self.controller.show_child_profile(self))
 
         # Populate
         self.update_treeview(self.filtered_data)

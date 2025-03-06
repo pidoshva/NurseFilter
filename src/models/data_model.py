@@ -42,6 +42,9 @@ class DataModel:
             if not os.path.exists(filepath):
                 logging.warning(f"Filepath '{filepath}' does not exist; cannot encrypt.")
                 return False
+            if self.is_file_encrypted(filepath):
+                logging.warning(f"File '{filepath}' is already encrypted.")
+                return False
             key = Crypto.loadKey()
             Crypto.encrypt_file(filepath, key)
             logging.info("File encrypted successfully.")

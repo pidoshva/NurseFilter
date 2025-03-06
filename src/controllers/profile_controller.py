@@ -10,10 +10,12 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 
 class ProfileController:
-    def __init__(self, root, child_data, model):
+    def __init__(self, root, child_data, model, main_controller, update_callback):
+        self.main_controller = main_controller 
         self.root = root
         self.child_data = child_data
         self.model = model
+        self.update_callback = update_callback
         self.view = None
         logging.info("ProfileController initialized.")
 
@@ -21,55 +23,14 @@ class ProfileController:
         self.view = ProfileView(self.root, self, self.child_data)
         logging.info("Profile view displayed.")
 
-    def assign_nurse(self):
+    def assign_nurse(self, child_data, update_callback):
         logging.info("Assign Nurse button clicked.")
-        assign_win = tk.Toplevel(self.root)
-        assign_win.title(f"Assign Nurse to {self.child_data['Child_First_Name']} {self.child_data['Child_Last_Name']}")
-        assign_win.geometry("300x150")
+        
+        def both_callback(e):
+            update_callback(e)
+            self.update_callback()
 
-        tk.Label(assign_win, text="Enter Nurse Name:").pack(pady=5)
-        nurse_var = tk.StringVar()
-        tk.Entry(assign_win, textvariable=nurse_var).pack(pady=5)
-
-        def save_nurse():
-            nurse_name = nurse_var.get().strip()
-            if nurse_name:
-                df = self.model.combined_data
-                idx = df[
-                    (df['Mother_ID'].astype(str) == str(self.child_data['Mother_ID'])) &
-                    (df['Child_First_Name'].str.lower() == self.child_data['Child_First_Name'].lower()) &
-                    (df['Child_Last_Name'].str.lower() == self.child_data['Child_Last_Name'].lower()) &
-                    (df['Child_Date_of_Birth'] == self.child_data['Child_Date_of_Birth'])
-                ].index
-                if not idx.empty:
-                    df.at[idx[0], 'Assigned_Nurse'] = nurse_name
-                    df.to_excel('combined_matched_data.xlsx', index=False)
-                    logging.info(f"Assigned Nurse '{nurse_name}'")
-                    self.view.update_nurse_info(f"Name: {nurse_name}")
-                    
-                    # Get the correct controller instance from root window
-                    if hasattr(self.root, 'combined_data_controller'):
-                        logging.info("Found combined_data_controller, refreshing view")
-                        self.root.combined_data_controller.refresh_view()
-                    else:
-                        # Try to find it through the main window if we're in a Toplevel
-                        main_window = self.root.master if isinstance(self.root, tk.Toplevel) else self.root
-                        if hasattr(main_window, 'combined_data_controller'):
-                            logging.info("Found combined_data_controller through main window")
-                            main_window.combined_data_controller.refresh_view()
-                        else:
-                            logging.warning("Could not find combined_data_controller in any window")
-                    
-                    messagebox.showinfo("Success", f"Nurse '{nurse_name}' assigned.")
-                    assign_win.destroy()
-                else:
-                    logging.error("No matching record to update.")
-                    messagebox.showerror("Error", "Failed to assign nurse.")
-            else:
-                logging.warning("Nurse name empty.")
-                messagebox.showerror("Error", "Nurse name cannot be empty.")
-
-        tk.Button(assign_win, text="Save", command=save_nurse).pack(pady=5)
+        self.main_controller.assign_nurse(child_data, both_callback)
 
     def copy_to_clipboard(self):
         mother = self.view.get_mother_info_text()
