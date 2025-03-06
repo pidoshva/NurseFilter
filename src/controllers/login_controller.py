@@ -1,9 +1,16 @@
 import sqlite3
 import bcrypt
+import logging
+from tkinter import messagebox
+from views.login_view import LoginView
 
-class DatabaseController:
-    def __init__(self):
+
+class LoginController:
+    def __init__(self, root, main_controller):
+        self.root = root
+        self.main_controller = main_controller
         self.initialize_db()
+        self.view = LoginView(self.root, self)
 
     def initialize_db(self):
         conn = sqlite3.connect('users.db')
@@ -55,10 +62,39 @@ class DatabaseController:
         if result:
             stored_password = result[0]
             if bcrypt.checkpw(password.encode('utf-8'), stored_password):
+                conn.close()
                 return True
             else:
+                conn.close()
                 return False
         else:
+            conn.close()
             return None
 
-        conn.close()
+    def login(self, username, password):
+        """
+        Handles login logic.
+        If the username and password are correct, it shows a success message.
+        Otherwise, it shows an error.
+        """
+        login_result = self.login_user(username, password)
+
+        if login_result is True:
+            logging.info(f"Login Success: {username}")
+            self.main_controller.show_initial_view()
+            self.view.close()
+            return True
+        elif login_result is False:
+            logging.error(f"Login failed: Invalid password for {username}")
+            messagebox.showerror("Login Failed", "Invalid username or password")
+            return False
+        elif login_result is None:
+            logging.error(f"Login failed: Username '{username}' not found")
+            messagebox.showerror("Login Failed", "Username not found")
+            return False
+        else:
+            logging.error("Login failed: Unknown error")
+            messagebox.showerror("Login Failed", "Unknown error occurred")
+            return False
+    
+

@@ -72,14 +72,6 @@ class UnmatchedDataView:
         self.tree.bind("<Double-1>", toggle_expand)
         self.tree.tag_configure("additional", background="#962f2f", font=("Arial", 10, "italic"))
 
-        # Button to open unmatched data in Excel
-        def view_in_excel():
-            path = "unmatched_data.xlsx"
-            if os.path.exists(path):
-                os.system(f"open {path}")
-            else:
-                messagebox.showerror("Error", "Unmatched data file does not exist.")
-
-        tk.Button(self.window, text="View in Excel", command=view_in_excel).pack(pady=10)
+        tk.Button(self.window, text="View in Excel", command=self.controller.display_in_excel).pack(pady=10)
 
         logging.info("Unmatched data window loaded successfully.")

@@ -1,7 +1,7 @@
 import tkinter as tk
 import logging
 
-class MainView:
+class InitialView:
     """
     The initial (main) window with 4 buttons:
       - Read Excel File 1
