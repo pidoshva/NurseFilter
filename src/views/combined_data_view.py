@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 import pandas as pd
 import logging
 from tkinter import ttk, messagebox
@@ -27,7 +28,19 @@ class CombinedDataView:
         self.combined_window.title("Combined Data")
         self.combined_window.geometry("1000x600")
         self.combined_window.minsize(800, 400)
-
+        self.notebook =ttk.Notebook(self.combined_window)
+        self.notebook.pack(expand=True, fill="both")
+        self.combined_data = tk.Frame(self.notebook)
+        self.duplicate_tab = tk.Frame(self.notebook)
+        self.notebook.add(self.combined_data, text="Combined")
+        self.notebook.add(self.duplicate_tab, text ="Duplicates")
+        self.create_combined_data_tab()
+        self.duplicated_data_tab() 
+        # self.create_batch_assign_tab()
+        
+        
+      
+    def create_combined_data_tab(self):
         # Top frame: search, sort, nurse stats
         top_frame = tk.Frame(self.combined_window)
         top_frame.pack(fill=tk.X, padx=5, pady=5)
@@ -105,16 +118,56 @@ class CombinedDataView:
             count_label = tk.Label(unmatched_button, text=str(self.unmatched_count),
                                    bg="red", fg="white", font=("Arial", 10, "bold"))
             count_label.place(relx=1.0, rely=0.0, anchor="ne")
+            
 
         # If there are duplicate rows, show a button with a blue badge
-        if self.controller.model.duplicate_data is not None and not self.controller.model.duplicate_data.empty:
-            duplicate_button = tk.Button(bottom_frame, text="View Duplicate Data", command=self.controller.view_duplicate_data)
-            duplicate_button.pack(side=tk.LEFT, padx=10)
-            # Badge
-            duplicate_count = int((len(self.controller.model.duplicate_data))/2)
-            dup_count_label = tk.Label(duplicate_button, text=str(duplicate_count),
-                                    bg="blue", fg="white", font=("Arial", 10, "bold"))
-            dup_count_label.place(relx=1.0, rely=0.0, anchor="ne")
+    def show_duplicate_tab(self):
+        """Switch to the 'Duplicates' tab."""
+        self.notebook.select(self.duplicate_tab)
+
+    def duplicated_data_tab(self):
+        # if self.controller.model.duplicate_data is not None and not self.controller.model.duplicate_data.empty:
+        #     duplicate_button = tk.Button(self.duplicate_tab, text="View Duplicate Data", command=lambda: [self.show_duplicate_tab(), self.controller.view_duplicate_data()])
+        #     duplicate_button.pack(side=tk.LEFT, padx=10)
+        #     # Badge
+        #     duplicate_count = int((len(self.controller.model.duplicate_data))/2)
+        #     dup_count_label = tk.Label(duplicate_button, text=str(duplicate_count),
+        #                             bg="blue", fg="white", font=("Arial", 10, "bold"))
+        #     dup_count_label.place(relx=1.0, rely=0.0, anchor="ne")
+    #    def duplicated_data_tab(self):
+    # """Create a table inside the 'Duplicates' tab to display duplicate data."""
+
+        # Create a frame inside the duplicate tab (not combined_window)
+        table_frame = tk.Frame(self.duplicate_tab)
+        table_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+        # Define columns for the Treeview
+        columns = ("Mother_ID", "First_Name", "Last_Name", "Date_of_Birth", "Assigned_Nurse")
+        self.duplicate_treeview = ttk.Treeview(table_frame, columns=columns, show='headings')
+
+        # Column headers
+        column_headers = {
+            "Mother_ID": "Mother ID",
+            "First_Name": "First Name",
+            "Last_Name": "Last Name", 
+            "Date_of_Birth": "Date of Birth",
+            "Assigned_Nurse": "Assigned Nurse"
+        }
+
+        for col in columns:
+            self.duplicate_treeview.heading(col, text=column_headers[col])
+            self.duplicate_treeview.column(col, anchor="center", width=150)
+
+        # Add a scrollbar inside the tab for scrolling
+        scrollbar = ttk.Scrollbar(table_frame, orient="vertical", command=self.duplicate_treeview.yview)
+        self.duplicate_treeview.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side='right', fill='y')
+
+        # Pack the Treeview inside the frame
+        self.duplicate_treeview.pack(fill=tk.BOTH, expand=True)
+
+        # Populate the table with duplicate data
+        self.update_duplicate_treeview(self.controller.model.duplicate_data)
 
 
     def update_treeview(self, data):
@@ -205,3 +258,20 @@ class CombinedDataView:
 
         self.filtered_data = df
         self.update_treeview(self.filtered_data)
+    def update_duplicate_treeview(self, data):
+        """Update the 'Duplicates' tab table with fresh data."""
+
+        # Clear any existing rows
+        for item in self.duplicate_treeview.get_children():
+            self.duplicate_treeview.delete(item)
+
+        # Insert duplicate records into the table
+        for _, row in data.iterrows():
+            values = [
+                str(row.get('Mother_ID', '')),
+                row.get('Child_First_Name', ''),
+                row.get('Child_Last_Name', ''),
+                row.get('Child_Date_of_Birth', ''),
+                row.get('Assigned_Nurse', 'None')  # Display "None" if no nurse assigned
+            ]
+            self.duplicate_treeview.insert('', 'end', values=values)
