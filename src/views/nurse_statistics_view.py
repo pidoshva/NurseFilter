@@ -1,7 +1,4 @@
 import tkinter as tk
-from tkinter import messagebox, ttk
-import pandas as pd
-
 
 class NursesStatisticalView:
     def __init__(self, root, controller):
@@ -11,9 +8,7 @@ class NursesStatisticalView:
 
     def display(self, assigned):
         counts = assigned['Assigned_Nurse'].value_counts()
-        stats = tk.Toplevel(self.root)
-        stats.title("Nurse Statistics")
-        stats.geometry("400x400")
+        stats = tk.Frame(self.root, width=400, height=400)
 
         most_assigned = counts.idxmax()
         least_assigned = counts.idxmin()
@@ -23,3 +18,6 @@ class NursesStatisticalView:
         tk.Label(stats, text="Assignments by Nurse:", font=("Arial",12,"bold")).pack(pady=5)
         for nurse, count in counts.items():
             tk.Label(stats, text=f"{nurse}: {count} assignment(s)", fg="blue").pack(anchor='w', padx=10)
+        
+        stats.pack()
+        return stats

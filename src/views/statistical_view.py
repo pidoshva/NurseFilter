@@ -9,9 +9,7 @@ class StatisticalView:
         self.root = root
 
     def display(self, df):
-        report_win = tk.Toplevel(self.root)
-        report_win.title("Statistical Report")
-        report_win.geometry("600x650")
+        report_win = tk.Frame(self.root, width=600, height=650)
 
         # Ensure 'Assigned_Nurse' column exists and replace NaN with 'None'
         df['Assigned_Nurse'] = df['Assigned_Nurse'].fillna("None").astype(str).str.strip()
@@ -118,3 +116,5 @@ class StatisticalView:
                 tree.insert("", "end", values=(town, count))
 
         tk.Button(report_win, text="Export as PDF", command=lambda: self.controller.export_report_to_pdf(df)).pack(pady=10)
+        report_win.pack()
+        return report_win

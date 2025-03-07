@@ -13,6 +13,10 @@ class NurseController:
         self.main_controller = main_controller
         self.root = root
         self.model = model
+        self.report_view = None
+        self.nurse_stats_view = None
+        self.batch_assign_view = None
+        self.assign_nurse_view = None
         logging.info("NurseController initialized.")
 
     def generate_report(self):
@@ -31,9 +35,11 @@ class NurseController:
         
     def _show_report(self):
         view = StatisticalView(self.root, self)
-        view.display(self.model.combined_data)
+        frame = view.display(self.model.combined_data)
+        self.main_controller.add_tab(frame, "Statistical Report")
+        self.report_view = frame
         logging.info("StatisticalView displayed.")
-        return view
+        return frame
         
     def export_report_to_pdf(self, df):
         try:
@@ -114,7 +120,9 @@ class NurseController:
         """
         Show nurse statistics window
         """
-        NursesStatisticalView(self.root, self).display(assigned)
+        frame = NursesStatisticalView(self.root, self).display(assigned)
+        self.main_controller.add_tab(frame, "Nurse Statistics")
+        self.nurse_stats_view = frame
         logging.info("NursesStatisticalView displayed.")
 
 
@@ -125,11 +133,17 @@ class NurseController:
             return
         
         logging.info("BatchAssignView displayed.")
-        return BatchAssignView(self.root, self, self.model.batch_update_nurses, refresh_view_callback).display()
+        frame = BatchAssignView(self.root, self, self.model.batch_update_nurses, refresh_view_callback).display()
+        self.main_controller.add_tab(frame, "Batch Assign Nurses")
+        self.batch_assign_view = frame
+        return frame
 
 
     def assign_nurse(self, child_data, update_callback):
-        return AssignNurseView(self.root, self, child_data, update_callback).display()
+        frame = AssignNurseView(self.root, self, child_data, update_callback).display()
+        self.main_controller.add_tab(frame, "Assign Nurse")
+        self.assign_nurse_view = frame
+        return frame
 
     def save_nurse(self, nurse_name, child_data, update_callback, close_window_callback):
         if nurse_name:
@@ -155,3 +169,22 @@ class NurseController:
             logging.warning("Nurse name empty.")
             messagebox.showerror("Error", "Nurse name cannot be empty.")
     
+    def close_report(self):
+        if self.report_view:
+            self.main_controller.remove_tab(self.report_view)
+            self.report_view = None
+
+    def close_nurse_stats(self):
+        if self.nurse_stats_view:
+            self.main_controller.remove_tab(self.nurse_stats_view)
+            self.nurse_stats_view = None
+    
+    def close_batch_assign(self):
+        if self.batch_assign_view:
+            self.main_controller.remove_tab(self.batch_assign_view)
+            self.batch_assign_view = None
+    
+    def close_assign_nurse(self):
+        if self.assign_nurse_view:
+            self.main_controller.remove_tab(self.assign_nurse_view)
+            self.assign_nurse_view = None
