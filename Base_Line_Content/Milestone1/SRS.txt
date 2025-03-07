@@ -20,7 +20,7 @@ January 2025
              (hospital and Medicaid datasets).
              Test: Verify file selection dialog opens and files load successfully.
 
-       FR1.2: The system shall detect and handle encrypted Excel files.
+       FR1.2: The system shall detect and open encrypted Excel files using Fernet encryption.
              Test: Verify encrypted files are identified and decrypted properly.
 
    2.2 Data Combination
@@ -56,12 +56,30 @@ January 2025
              - ZIP Code
              Test: Verify batch assignment works for specified criteria.
 
-   2.5 Data Security
-       FR5.1: The system shall encrypt sensitive data files.
+   2.5 User Interface Navigation
+       FR5.1: The system shall provide a tab-based navigation system with the following tabs:
+             - Main Data View
+             - Nurse Profile Management
+             - Combined Data View
+             Test: Verify user can navigate between all tabs and appropriate content is displayed.
+
+       FR5.2: The system shall maintain state between tab switches.
+             Test: Verify that data persists when switching between tabs.
+
+   2.6 Data Security
+       FR6.1: The system shall encrypt sensitive data files using Fernet encryption.
              Test: Verify files are properly encrypted when saved.
 
-       FR5.2: The system shall decrypt files when accessed with proper credentials.
+       FR6.2: The system shall decrypt files using Fernet encryption when accessed with proper credentials.
              Test: Verify encrypted files can be decrypted for viewing.
+             
+       FR6.3: The system shall log the following operations with timestamps:
+             - File loading
+             - Data combination
+             - Nurse assignments
+             - Encryption/decryption operations
+             - Data export
+             Test: Verify log entries are created for each specified operation.
 
 3. Non-Functional Requirements
 
@@ -73,7 +91,7 @@ January 2025
                Test: Measure data combination execution time.
 
    3.2 Usability
-       NFR2.1: The system shall provide clear error messages for all error states.
+       NFR2.1: The system shall provide error messages for all error states.
                Test: Verify error messages are displayed for various error conditions.
 
        NFR2.2: The system shall maintain consistent UI layout across all windows.
@@ -87,7 +105,7 @@ January 2025
                Test: Verify data remains unchanged after encryption/decryption cycle.
 
    3.4 Security
-       NFR4.1: The system shall use industry-standard encryption (Fernet).
+       NFR4.1: The system shall use Fernet symmetric encryption for all data security operations.
                Test: Verify encryption implementation meets standards.
 
        NFR4.2: The system shall not store encryption keys in plaintext.
@@ -96,9 +114,6 @@ January 2025
    3.5 Maintainability
        NFR5.1: The system shall follow MVC architecture pattern.
                Test: Code review to verify separation of concerns.
-
-       NFR5.2: The system shall log all critical operations with timestamps.
-               Test: Verify logging functionality for key operations.
 
 4. Constraints
    4.1: The system shall be implemented in Python 3.x
