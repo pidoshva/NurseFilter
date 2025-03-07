@@ -10,13 +10,14 @@ class DuplicateDataView:
         self.root = root
         self.controller = controller
         self.duplicate_data = duplicate_data
+        self.window = None
 
+    def show_duplicate_data(self):
         self.create_view()
-
+        return self.window
+        
     def create_view(self):
-        self.window = tk.Toplevel(self.root)
-        self.window.title("Duplicate Data")
-        self.window.geometry("900x500")
+        self.window = tk.Frame(self.root, width=900, height=500)
 
         columns = list(self.duplicate_data.columns)
 
@@ -31,4 +32,5 @@ class DuplicateDataView:
             values = [row[col] for col in columns]
             self.tree.insert("", "end", values=values)
 
-        tk.Button(self.window, text="Close", command=self.window.destroy).pack(pady=10)
+        tk.Button(self.window, text="Close", command=self.controller.close_duplicate).pack(pady=10)
+        self.window.pack()

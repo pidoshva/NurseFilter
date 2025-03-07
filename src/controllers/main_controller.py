@@ -59,6 +59,10 @@ class MainController:
     def show_unmatched_data(self):
         controller = self._get_combined_data_controller()
         return controller.view_unmatched_data()
+    
+    def show_duplicate_data(self):
+        controller = self._get_combined_data_controller()
+        return controller.view_duplicate_data()
 
     def show_profile(self, child_data, update_callback):
         controller = self._get_profile_controller(child_data, update_callback)

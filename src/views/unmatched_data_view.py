@@ -1,7 +1,6 @@
 import tkinter as tk
 import logging
-import os
-from tkinter import ttk, messagebox
+from tkinter import ttk
 
 class UnmatchedDataView:
     """
@@ -14,12 +13,17 @@ class UnmatchedDataView:
         self.unmatched_data = unmatched_data
 
         logging.info("Opening unmatched data window.")
+
+    def show_unmatched_data(self):
+        """
+        Create and display the unmatched data window.
+        """
         self.create_view()
+        return self.window
+        
 
     def create_view(self):
-        self.window = tk.Toplevel(self.root)
-        self.window.title("Unmatched Data")
-        self.window.geometry("900x500")
+        self.window = tk.Frame(self.root, width=900, height=500)
 
         # Define primary columns to display initially
         primary_columns = ["Source", "Child_ID", "Mother_First_Name", "Mother_Last_Name"]
@@ -47,13 +51,14 @@ class UnmatchedDataView:
 
         # Function to expand/collapse rows
         def toggle_expand(event):
+            logging.info("Toggling row expansion.")
             selected_item = self.tree.selection()
             if not selected_item:
                 return
             
             row_data = expanded_rows.get(selected_item[0], {})
             is_expanded = row_data.get("expanded", False)
-
+            logging.info(f"Row expanded: {is_expanded}")
             if not is_expanded:
                 detail_items = []
                 for detail in row_data["details"]:

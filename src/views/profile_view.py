@@ -19,11 +19,19 @@ class ProfileView:
 
         self.create_view()
 
-    def create_view(self):
-        self.profile_window = tk.Toplevel(self.root)
+    def get_frame(self):
+        return self.profile_window
+    
+    def get_title(self):
         first = self.child_data.get('Child_First_Name','')
         last = self.child_data.get('Child_Last_Name','')
-        self.profile_window.title(f"Profile of {first} {last}")
+        return f"{first} {last} Profile"
+
+    def create_view(self):
+        self.profile_window = tk.Frame(self.root)
+
+        first = self.child_data.get('Child_First_Name','')
+        last = self.child_data.get('Child_Last_Name','')
 
         frame = tk.Frame(self.profile_window, padx=10, pady=10)
         frame.pack(fill=tk.BOTH, expand=True)

@@ -16,6 +16,8 @@ class CombinedDataController:
         self.model = model
         self.main_controller = main_controller
         self.view = None
+        self.duplicate_data_view = None
+        self.unmatched_data_view = None
         logging.info("CombinedDataController initialized.")
 
     def show_combined_data(self):
@@ -50,9 +52,12 @@ class CombinedDataController:
         """
         selected_data = view.get_selected_child_data()
         if selected_data is not None:
-            self.main_controller.show_profile(selected_data, self.refresh_view)
+            profile = self.main_controller.show_profile(selected_data, self.refresh_view)
+            self.main_controller.add_tab(profile[0], profile[1]) # Profile contains (view, title)
+            return profile
         else:
             logging.warning("No child data found for selected item.")
+        
 
     def refresh_view(self):
         """Refresh the CombinedDataView TreeView with the latest combined data."""
@@ -85,7 +90,10 @@ class CombinedDataController:
             messagebox.showinfo("No Data", "No duplicate data found.")
             return
 
-        DuplicateDataView(self.root, self, self.model.duplicate_data)
+        duplicate_window = DuplicateDataView(self.root, self, self.model.duplicate_data)
+        self.duplicate_data_view = duplicate_window.show_duplicate_data()
+        self.main_controller.add_tab(self.duplicate_data_view, "Duplicate Data")
+        return self.duplicate_data_view
 
 
     def view_unmatched_data(self):
@@ -99,7 +107,9 @@ class CombinedDataController:
             return
 
         # Open UnmatchedDataView instead of showing combined data
-        return UnmatchedDataView(self.root, self, self.model.unmatched_data)
+        unmatched_window = UnmatchedDataView(self.root, self, self.model.unmatched_data)
+        self.main_controller.add_tab(unmatched_window.show_unmatched_data(), "Unmatched Data")
+        return unmatched_window.show_unmatched_data()
 
     def show_nurse_statistics(self):
         """
@@ -123,3 +133,21 @@ class CombinedDataController:
     def display_in_excel(self):
         """Open the combined matched data in Excel."""
         self.main_controller.display_in_excel('combined_matched_data.xlsx')
+
+    def close_combined(self):
+        """Close the combined data view."""
+        if self.view:
+            self.main_controller.remove_tab(self.view)
+            self.view = None
+
+    def close_duplicate(self):
+        """Close the duplicate data view."""
+        if self.duplicate_data_view:
+            self.main_controller.remove_tab(self.duplicate_data_view)
+            self.duplicate_data_view = None
+    
+    def close_unmatched(self):
+        """Close the unmatched data view."""
+        if self.unmatched_data_view:
+            self.main_controller.remove_tab(self.unmatched_data_view)
+            self.unmatched_data_view = None
