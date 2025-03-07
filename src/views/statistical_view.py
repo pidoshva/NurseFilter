@@ -8,7 +8,7 @@ class StatisticalView:
         self.controller = controller
         self.root = root
 
-    def display(self, df):
+    def create_widgets(self, df):
         report_win = tk.Frame(self.root, width=600, height=650)
 
         # Ensure 'Assigned_Nurse' column exists and replace NaN with 'None'

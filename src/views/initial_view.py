@@ -13,7 +13,6 @@ class InitialView:
   def __init__(self, root, controller):
       self.root = tk.Frame(root, width=500, height=600)
       self.controller = controller
-      self.create_widgets()
       logging.info("MainView initialized.")
 
   def create_widgets(self):
@@ -41,6 +40,5 @@ class InitialView:
       upload_existing_button.pack(pady=10)
 
       logging.info("MainView widgets created.")
+      return self.root
 
-  def get_view(self):
-    return self.root

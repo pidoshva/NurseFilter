@@ -7,7 +7,6 @@ from views.nurse_statistics_view import NursesStatisticalView
 from views.batch_assign_view import BatchAssignView
 from views.assign_nurse_view import AssignNurseView
 
-
 class NurseController:
     def __init__(self, root, model: DataModel, main_controller):
         self.main_controller = main_controller
@@ -32,10 +31,9 @@ class NurseController:
         
         return self._show_report()
     
-        
     def _show_report(self):
         view = StatisticalView(self.root, self)
-        frame = view.display(self.model.combined_data)
+        frame = view.create_widgets(self.model.combined_data)
         self.main_controller.add_tab(frame, "Statistical Report")
         self.report_view = frame
         logging.info("StatisticalView displayed.")
@@ -120,32 +118,31 @@ class NurseController:
         """
         Show nurse statistics window
         """
-        frame = NursesStatisticalView(self.root, self).display(assigned)
+        frame = NursesStatisticalView(self.root, self).create_widgets(assigned)
         self.main_controller.add_tab(frame, "Nurse Statistics")
         self.nurse_stats_view = frame
         logging.info("NursesStatisticalView displayed.")
+        return frame
 
-
-    def batch_assign_nurses(self, refresh_view_callback):
+    def batch_assign_nurses(self, update_callback):
         """Handle batch nurse assignment"""
         if self.model.combined_data is None or self.model.combined_data.empty:
             messagebox.showerror("Error", "No data available for batch assignment.")
             return
         
         logging.info("BatchAssignView displayed.")
-        frame = BatchAssignView(self.root, self, self.model.batch_update_nurses, refresh_view_callback).display()
+        frame = BatchAssignView(self.root, self, self.model.batch_update_nurses, update_callback).create_widgets()
         self.main_controller.add_tab(frame, "Batch Assign Nurses")
         self.batch_assign_view = frame
         return frame
 
-
     def assign_nurse(self, child_data, update_callback):
-        frame = AssignNurseView(self.root, self, child_data, update_callback).display()
+        frame = AssignNurseView(self.root, self, child_data, update_callback).create_widgets()
         self.main_controller.add_tab(frame, "Assign Nurse")
         self.assign_nurse_view = frame
         return frame
 
-    def save_nurse(self, nurse_name, child_data, update_callback, close_window_callback):
+    def save_nurse(self, nurse_name, child_data, update_callback, close_callback):
         if nurse_name:
             df = self.model.combined_data
             idx = df[
@@ -161,7 +158,7 @@ class NurseController:
                 
                 update_callback(f"Name: {nurse_name}")
                 # messagebox.showinfo("Success", f"Nurse '{nurse_name}' assigned.")
-                close_window_callback()
+                close_callback()
             else:
                 logging.error("No matching record to update.")
                 messagebox.showerror("Error", "Failed to assign nurse.")

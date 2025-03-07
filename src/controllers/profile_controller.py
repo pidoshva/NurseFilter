@@ -1,4 +1,3 @@
-import tkinter as tk
 from tkinter import messagebox
 import logging
 import os
@@ -21,7 +20,9 @@ class ProfileController:
 
     def show_profile(self):
         self.view = ProfileView(self.root, self, self.child_data)
-        return (self.view.get_frame(), self.view.get_title())
+        frame = self.view.create_widgets()
+        self.main_controller.add_tab(frame, self.view.get_title())
+        return frame
 
     def assign_nurse(self, child_data, update_callback):
         logging.info("Assign Nurse button clicked.")
@@ -30,7 +31,7 @@ class ProfileController:
             update_callback(e)
             self.update_callback()
 
-        self.main_controller.assign_nurse(child_data, both_callback)
+        return self.main_controller.assign_nurse(child_data, both_callback)
 
     def copy_to_clipboard(self):
         mother = self.view.get_mother_info_text()

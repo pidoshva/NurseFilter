@@ -9,7 +9,7 @@ class ProfileView:
         self.root = root
         self.controller = controller
         self.child_data = child_data
-        self.profile_window = None
+        self.view = None
 
         # We'll store text versions so we can copy/export them
         self.mother_info_text = ""
@@ -17,23 +17,21 @@ class ProfileView:
         self.address_info_text = ""
         self.nurse_info_text = ""
 
-        self.create_view()
-
     def get_frame(self):
-        return self.profile_window
+        return self.view
     
     def get_title(self):
         first = self.child_data.get('Child_First_Name','')
         last = self.child_data.get('Child_Last_Name','')
         return f"{first} {last} Profile"
 
-    def create_view(self):
-        self.profile_window = tk.Frame(self.root)
+    def create_widgets(self):
+        self.view = tk.Frame(self.root)
 
         first = self.child_data.get('Child_First_Name','')
         last = self.child_data.get('Child_Last_Name','')
 
-        frame = tk.Frame(self.profile_window, padx=10, pady=10)
+        frame = tk.Frame(self.view, padx=10, pady=10)
         frame.pack(fill=tk.BOTH, expand=True)
 
         # Mother's Info
@@ -90,7 +88,7 @@ class ProfileView:
         tk.Button(frame, text="Copy Profile Info", command=self.controller.copy_to_clipboard).pack(pady=(5,5))
         tk.Button(frame, text="Export to PDF", command=self.controller.export_profile_to_pdf).pack(pady=(5,5))
         tk.Button(frame, text="Close", command=self.controller.close).pack(pady=(5,5))
-
+        return self.view
     
     def assign_nurse(self):
         self.controller.assign_nurse(self.child_data , self.update_nurse_info)

@@ -27,11 +27,12 @@ class CombinedDataController:
             # Calculate unmatched count
             unmatched_count = len(self.model.unmatched_data) if self.model.unmatched_data is not None else 0
             self.view = CombinedDataView(self.root, self, self.model.combined_data, unmatched_count=unmatched_count)
-            self.main_controller.add_tab(self.view.get_combined_window(), "Combined Data")
+            frame = self.view.create_widgets()
+            self.main_controller.add_tab(frame, "Combined Data")
         else:
             logging.error("No combined data available to display.")
             messagebox.showerror("Error", "No combined data available to display.")
-        return self.view
+        return frame
     
 
     def search_combined_names(self, query):
@@ -53,7 +54,6 @@ class CombinedDataController:
         selected_data = view.get_selected_child_data()
         if selected_data is not None:
             profile = self.main_controller.show_profile(selected_data, self.refresh_view)
-            self.main_controller.add_tab(profile[0], profile[1]) # Profile contains (view, title)
             return profile
         else:
             logging.warning("No child data found for selected item.")
@@ -91,7 +91,7 @@ class CombinedDataController:
             return
 
         duplicate_window = DuplicateDataView(self.root, self, self.model.duplicate_data)
-        self.duplicate_data_view = duplicate_window.show_duplicate_data()
+        self.duplicate_data_view = duplicate_window.create_widgets()
         self.main_controller.add_tab(self.duplicate_data_view, "Duplicate Data")
         return self.duplicate_data_view
 
@@ -108,7 +108,7 @@ class CombinedDataController:
 
         # Open UnmatchedDataView instead of showing combined data
         unmatched_window = UnmatchedDataView(self.root, self, self.model.unmatched_data)
-        self.unmatched_data_view = unmatched_window.show_unmatched_data()
+        self.unmatched_data_view = unmatched_window.create_widgets()
         self.main_controller.add_tab(self.unmatched_data_view, "Unmatched Data")
         return self.unmatched_data_view
 

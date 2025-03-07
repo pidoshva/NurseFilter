@@ -6,7 +6,7 @@ class NursesStatisticalView:
         self.root = root
 
 
-    def display(self, assigned):
+    def create_widgets(self, assigned):
         counts = assigned['Assigned_Nurse'].value_counts()
         stats = tk.Frame(self.root, width=400, height=400)
 

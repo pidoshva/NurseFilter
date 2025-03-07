@@ -13,6 +13,7 @@ import logging
 
 
 class MainController:
+    '''Controller responsible for managing inter-controller communication.'''
     def __init__(self, root):
         self.app_root = root  # The main Tkinter window
         self.tabs = self._get_tabs_controller(root)
@@ -39,7 +40,7 @@ class MainController:
         return NurseController(self.root, self.model, self)
     
     def _get_tabs_controller(self, root):
-        return TabsController(root, self)
+        return TabsController(root)
     
     def add_tab(self, tab_view, tab_name):
         self.tabs.add_tab(tab_view, tab_name)
@@ -72,9 +73,9 @@ class MainController:
         controller = self._get_nurse_controller()
         return controller.show_nurse_statistics()
 
-    def batch_assign_nurses(self, refresh_view_callback):
+    def batch_assign_nurses(self, update_callback):
         controller = self._get_nurse_controller()
-        return controller.batch_assign_nurses(refresh_view_callback)
+        return controller.batch_assign_nurses(update_callback)
 
     def assign_nurse(self, child_data, update_callback):
         controller = self._get_nurse_controller()

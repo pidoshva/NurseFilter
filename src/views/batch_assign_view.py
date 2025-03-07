@@ -9,7 +9,7 @@ class BatchAssignView:
         self.batch_assign_callback = batch_assign_callback
         self.refresh_view = refresh_view_callback
 
-    def display(self):
+    def create_widgets(self):
         window = tk.Frame(self.root, width=400, height=400)
 
         # Create main frame to hold everything

@@ -12,7 +12,6 @@ class LoginView:
     def __init__(self, root, controller):
         self.view = tk.Frame(root, width=300, height=300)
         self.controller = controller
-        self.create_widgets()
         logging.info("LoginView initialized.")
 
     def login_button(self):
@@ -37,6 +36,4 @@ class LoginView:
         login_button = tk.Button(self.view, text="Login", command=self.login_button)
         login_button.pack(pady=10)
 
-    def get_view(self):
         return self.view
-    

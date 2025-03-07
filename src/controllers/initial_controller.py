@@ -17,9 +17,9 @@ class InitialController:
         logging.info("InitialController initialized.")
 
     def show_initial_view(self):
-        view = InitialView(self.root, self)
-        self.main_controller.add_tab(view.get_view(), "Data Loader")
-        return view.get_view()
+        view = InitialView(self.root, self).create_widgets()
+        self.main_controller.add_tab(view, "Data Loader")
+        return view
 
     # 1. Reading Excel Files
     def read_excel_file(self):

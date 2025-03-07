@@ -14,23 +14,15 @@ class UnmatchedDataView:
 
         logging.info("Opening unmatched data window.")
 
-    def show_unmatched_data(self):
-        """
-        Create and display the unmatched data window.
-        """
-        self.create_view()
-        return self.window
-        
-
-    def create_view(self):
-        self.window = tk.Frame(self.root, width=900, height=500)
+    def create_widgets(self):
+        view = tk.Frame(self.root, width=900, height=500)
 
         # Define primary columns to display initially
         primary_columns = ["Source", "Child_ID", "Mother_First_Name", "Mother_Last_Name"]
         all_columns = list(self.unmatched_data.columns)
 
         # Create Treeview widget
-        self.tree = ttk.Treeview(self.window, columns=primary_columns, show="headings")
+        self.tree = ttk.Treeview(view, columns=primary_columns, show="headings")
         self.tree.pack(fill=tk.BOTH, expand=True)
 
         # Configure column headings
@@ -77,7 +69,8 @@ class UnmatchedDataView:
         self.tree.bind("<Double-1>", toggle_expand)
         self.tree.tag_configure("additional", background="#962f2f", font=("Arial", 10, "italic"))
 
-        tk.Button(self.window, text="View in Excel", command=self.controller.display_in_excel).pack(pady=10)
-        tk.Button(self.window, text="Close", command=self.controller.close_unmatched).pack(padx=10)
+        tk.Button(view, text="View in Excel", command=self.controller.display_in_excel).pack(pady=10)
+        tk.Button(view, text="Close", command=self.controller.close_unmatched).pack(padx=10)
 
         logging.info("Unmatched data window loaded successfully.")
+        return view

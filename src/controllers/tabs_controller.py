@@ -1,11 +1,10 @@
 from views.tabs_view import TabsView
 
 class TabsController:
-    def __init__(self, root, main_controller):
+    def __init__(self, root):
         self.root = root
         self.view = TabsView(root)
         self.notebook_root = self.view.create_widgets()
-        self.main_controller = main_controller
 
     def get_tabs_root(self):
         return self.notebook_root
