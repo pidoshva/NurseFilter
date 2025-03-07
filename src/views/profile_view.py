@@ -89,6 +89,8 @@ class ProfileView:
         tk.Button(frame, text="Assign Nurse", command=self.assign_nurse).pack(pady=(10,5))
         tk.Button(frame, text="Copy Profile Info", command=self.controller.copy_to_clipboard).pack(pady=(5,5))
         tk.Button(frame, text="Export to PDF", command=self.controller.export_profile_to_pdf).pack(pady=(5,5))
+        tk.Button(frame, text="Close", command=self.controller.close).pack(pady=(5,5))
+
     
     def assign_nurse(self):
         self.controller.assign_nurse(self.child_data , self.update_nurse_info)

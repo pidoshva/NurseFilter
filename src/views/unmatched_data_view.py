@@ -78,5 +78,6 @@ class UnmatchedDataView:
         self.tree.tag_configure("additional", background="#962f2f", font=("Arial", 10, "italic"))
 
         tk.Button(self.window, text="View in Excel", command=self.controller.display_in_excel).pack(pady=10)
+        tk.Button(self.window, text="Close", command=self.controller.close_unmatched).pack(padx=10)
 
         logging.info("Unmatched data window loaded successfully.")

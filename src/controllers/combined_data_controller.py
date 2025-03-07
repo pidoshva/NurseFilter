@@ -108,8 +108,9 @@ class CombinedDataController:
 
         # Open UnmatchedDataView instead of showing combined data
         unmatched_window = UnmatchedDataView(self.root, self, self.model.unmatched_data)
-        self.main_controller.add_tab(unmatched_window.show_unmatched_data(), "Unmatched Data")
-        return unmatched_window.show_unmatched_data()
+        self.unmatched_data_view = unmatched_window.show_unmatched_data()
+        self.main_controller.add_tab(self.unmatched_data_view, "Unmatched Data")
+        return self.unmatched_data_view
 
     def show_nurse_statistics(self):
         """

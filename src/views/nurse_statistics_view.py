@@ -19,5 +19,7 @@ class NursesStatisticalView:
         for nurse, count in counts.items():
             tk.Label(stats, text=f"{nurse}: {count} assignment(s)", fg="blue").pack(anchor='w', padx=10)
         
+        tk.Button(stats, text="Close", command=self.controller.close_nurse_stats).pack(pady=(5,5))
+
         stats.pack()
         return stats

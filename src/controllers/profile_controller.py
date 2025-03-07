@@ -105,3 +105,8 @@ class ProfileController:
         except Exception as e:
             logging.error(f"Error exporting profile to PDF: {e}")
             messagebox.showerror("Error", f"Error exporting profile: {e}")
+
+    def close(self):
+        if self.view:
+            self.main_controller.remove_tab(self.view.get_frame())
+            self.view = None

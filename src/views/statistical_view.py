@@ -116,5 +116,7 @@ class StatisticalView:
                 tree.insert("", "end", values=(town, count))
 
         tk.Button(report_win, text="Export as PDF", command=lambda: self.controller.export_report_to_pdf(df)).pack(pady=10)
+        tk.Button(report_win, text="Close", command=self.controller.close_report).pack()
+
         report_win.pack()
         return report_win

@@ -20,4 +20,6 @@ class AssignNurseView:
             self.controller.save_nurse(nurse_name, self.child_data, self.update_callback, self.controller.close_assign_nurse)
 
         tk.Button(self.assign_win, text="Save", command=save_nurse).pack(pady=5)
+        tk.Button(self.assign_win, text="Close", command=self.controller.close_assign_nurse).pack(padx=5)
+
         return self.assign_win
