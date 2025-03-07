@@ -22,6 +22,7 @@ class ProfileController:
     def show_profile(self):
         self.view = ProfileView(self.root, self, self.child_data)
         logging.info("Profile view displayed.")
+        return self.view
 
     def assign_nurse(self, child_data, update_callback):
         logging.info("Assign Nurse button clicked.")

@@ -1,5 +1,4 @@
 import logging
-import os
 import tkinter as tk
 from tkinter import messagebox, filedialog
 from views.initial_view import InitialView
@@ -14,11 +13,13 @@ class InitialController:
     def __init__(self, root, model, main_controller):
         self.root = root
         self.model = model 
-        self.MainController = main_controller
+        self.main_controller = main_controller
         logging.info("InitialController initialized.")
 
     def show_initial_view(self):
-        InitialView(self.root, self)
+        view = InitialView(self.root, self)
+        self.main_controller.add_tab(view.get_view(), "Data Loader")
+        return view.get_view()
 
     # 1. Reading Excel Files
     def read_excel_file(self):
@@ -48,4 +49,4 @@ class InitialController:
     def load_combined_data(self):
         if self.model.load_combined_data():
             logging.info("Combined data loaded successfully.")
-            self.MainController.show_combined_data()
+            self.main_controller.show_combined_data()

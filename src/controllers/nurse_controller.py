@@ -26,12 +26,14 @@ class NurseController:
             messagebox.showerror("Error", "No 'Assigned_Nurse' column found in data.")
             return
         
-        self._show_report()
-        logging.info("Report generated.")
+        return self._show_report()
+    
         
     def _show_report(self):
-        StatisticalView(self.root, self).display(self.model.combined_data)
+        view = StatisticalView(self.root, self)
+        view.display(self.model.combined_data)
         logging.info("StatisticalView displayed.")
+        return view
         
     def export_report_to_pdf(self, df):
         try:
@@ -105,7 +107,7 @@ class NurseController:
             messagebox.showinfo("No Data", "No nurse assignments found.")
             return
 
-        self._show_nurse_stats(assigned)
+        return self._show_nurse_stats(assigned)
 
 
     def _show_nurse_stats(self, assigned):
@@ -122,12 +124,12 @@ class NurseController:
             messagebox.showerror("Error", "No data available for batch assignment.")
             return
         
-        BatchAssignView(self.root, self, self.model.batch_update_nurses, refresh_view_callback).display()
         logging.info("BatchAssignView displayed.")
+        return BatchAssignView(self.root, self, self.model.batch_update_nurses, refresh_view_callback).display()
 
 
     def assign_nurse(self, child_data, update_callback):
-        AssignNurseView(self.root, self, child_data, update_callback).display()
+        return AssignNurseView(self.root, self, child_data, update_callback).display()
 
     def save_nurse(self, nurse_name, child_data, update_callback, close_window_callback):
         if nurse_name:
