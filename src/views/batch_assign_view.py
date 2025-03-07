@@ -9,10 +9,8 @@ class BatchAssignView:
         self.batch_assign_callback = batch_assign_callback
         self.refresh_view = refresh_view_callback
 
-    def display(self):
-        window = tk.Toplevel(self.root)
-        window.title("Batch Assign Nurses")
-        window.geometry("400x400")  # Made window taller to ensure buttons are visible
+    def create_widgets(self):
+        window = tk.Frame(self.root, width=400, height=400)
 
         # Create main frame to hold everything
         main_frame = tk.Frame(window)
@@ -57,4 +55,6 @@ class BatchAssignView:
 
         # Add both Save and Cancel buttons
         tk.Button(button_frame, text="Save", command=save, width=10).pack(side=tk.LEFT, padx=5)
-        tk.Button(button_frame, text="Cancel", command=window.destroy, width=10).pack(side=tk.LEFT, padx=5)
+        tk.Button(button_frame, text="Cancel", command=self.controller.close_batch_assign , width=10).pack(side=tk.LEFT, padx=5)
+
+        return window

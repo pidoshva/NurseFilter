@@ -1,7 +1,6 @@
 import tkinter as tk
 import logging
-import os
-from tkinter import ttk, messagebox
+from tkinter import ttk
 
 class UnmatchedDataView:
     """
@@ -14,19 +13,16 @@ class UnmatchedDataView:
         self.unmatched_data = unmatched_data
 
         logging.info("Opening unmatched data window.")
-        self.create_view()
 
-    def create_view(self):
-        self.window = tk.Toplevel(self.root)
-        self.window.title("Unmatched Data")
-        self.window.geometry("900x500")
+    def create_widgets(self):
+        view = tk.Frame(self.root, width=900, height=500)
 
         # Define primary columns to display initially
         primary_columns = ["Source", "Child_ID", "Mother_First_Name", "Mother_Last_Name"]
         all_columns = list(self.unmatched_data.columns)
 
         # Create Treeview widget
-        self.tree = ttk.Treeview(self.window, columns=primary_columns, show="headings")
+        self.tree = ttk.Treeview(view, columns=primary_columns, show="headings")
         self.tree.pack(fill=tk.BOTH, expand=True)
 
         # Configure column headings
@@ -47,13 +43,14 @@ class UnmatchedDataView:
 
         # Function to expand/collapse rows
         def toggle_expand(event):
+            logging.info("Toggling row expansion.")
             selected_item = self.tree.selection()
             if not selected_item:
                 return
             
             row_data = expanded_rows.get(selected_item[0], {})
             is_expanded = row_data.get("expanded", False)
-
+            logging.info(f"Row expanded: {is_expanded}")
             if not is_expanded:
                 detail_items = []
                 for detail in row_data["details"]:
@@ -72,6 +69,8 @@ class UnmatchedDataView:
         self.tree.bind("<Double-1>", toggle_expand)
         self.tree.tag_configure("additional", background="#962f2f", font=("Arial", 10, "italic"))
 
-        tk.Button(self.window, text="View in Excel", command=self.controller.display_in_excel).pack(pady=10)
+        tk.Button(view, text="View in Excel", command=self.controller.display_in_excel).pack(pady=10)
+        tk.Button(view, text="Close", command=self.controller.close_unmatched).pack(padx=10)
 
         logging.info("Unmatched data window loaded successfully.")
+        return view

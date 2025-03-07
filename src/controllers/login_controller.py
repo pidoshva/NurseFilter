@@ -10,7 +10,14 @@ class LoginController:
         self.root = root
         self.main_controller = main_controller
         self.initialize_db()
-        self.view = LoginView(self.root, self)
+        self.view = self.show_login_view()
+        self.upon_success = self.main_controller.show_initial_view
+
+    def show_login_view(self):
+        view = LoginView(self.root, self).create_widgets()
+        self.main_controller.add_tab(view, "Login")
+        return view
+
 
     def initialize_db(self):
         conn = sqlite3.connect('users.db')
@@ -51,7 +58,7 @@ class LoginController:
         
         conn.close()
 
-    def login_user(self, username, password):
+    def _login_user(self, username, password):
 
         conn = sqlite3.connect('users.db')
         c = conn.cursor()
@@ -77,12 +84,12 @@ class LoginController:
         If the username and password are correct, it shows a success message.
         Otherwise, it shows an error.
         """
-        login_result = self.login_user(username, password)
+        login_result = self._login_user(username, password)
 
         if login_result is True:
             logging.info(f"Login Success: {username}")
-            self.main_controller.show_initial_view()
-            self.view.close()
+            self.upon_success()
+            self.main_controller.remove_tab(self.view)
             return True
         elif login_result is False:
             logging.error(f"Login failed: Invalid password for {username}")
@@ -96,5 +103,6 @@ class LoginController:
             logging.error("Login failed: Unknown error")
             messagebox.showerror("Login Failed", "Unknown error occurred")
             return False
+            
     
 

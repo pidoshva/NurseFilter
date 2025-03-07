@@ -19,14 +19,11 @@ class CombinedDataView:
         self.sort_ascending = True
         self.unmatched_count = unmatched_count
 
-        self.create_view()
         logging.info("CombinedDataView initialized.")
 
-    def create_view(self):
-        self.combined_window = tk.Toplevel(self.root)
-        self.combined_window.title("Combined Data")
-        self.combined_window.geometry("1000x600")
-        self.combined_window.minsize(800, 400)
+
+    def create_widgets(self):
+        self.combined_window = tk.Frame(self.root, width=1000, height=600)
 
         # Top frame: search, sort, nurse stats
         top_frame = tk.Frame(self.combined_window)
@@ -115,6 +112,8 @@ class CombinedDataView:
             dup_count_label = tk.Label(duplicate_button, text=str(duplicate_count),
                                     bg="blue", fg="white", font=("Arial", 10, "bold"))
             dup_count_label.place(relx=1.0, rely=0.0, anchor="ne")
+        return self.combined_window
+        
 
 
     def update_treeview(self, data):

@@ -7,12 +7,15 @@ from views.nurse_statistics_view import NursesStatisticalView
 from views.batch_assign_view import BatchAssignView
 from views.assign_nurse_view import AssignNurseView
 
-
 class NurseController:
     def __init__(self, root, model: DataModel, main_controller):
         self.main_controller = main_controller
         self.root = root
         self.model = model
+        self.report_view = None
+        self.nurse_stats_view = None
+        self.batch_assign_view = None
+        self.assign_nurse_view = None
         logging.info("NurseController initialized.")
 
     def generate_report(self):
@@ -26,12 +29,15 @@ class NurseController:
             messagebox.showerror("Error", "No 'Assigned_Nurse' column found in data.")
             return
         
-        self._show_report()
-        logging.info("Report generated.")
-        
+        return self._show_report()
+    
     def _show_report(self):
-        StatisticalView(self.root, self).display(self.model.combined_data)
+        view = StatisticalView(self.root, self)
+        frame = view.create_widgets(self.model.combined_data)
+        self.main_controller.add_tab(frame, "Statistical Report")
+        self.report_view = frame
         logging.info("StatisticalView displayed.")
+        return frame
         
     def export_report_to_pdf(self, df):
         try:
@@ -105,31 +111,38 @@ class NurseController:
             messagebox.showinfo("No Data", "No nurse assignments found.")
             return
 
-        self._show_nurse_stats(assigned)
+        return self._show_nurse_stats(assigned)
 
 
     def _show_nurse_stats(self, assigned):
         """
         Show nurse statistics window
         """
-        NursesStatisticalView(self.root, self).display(assigned)
+        frame = NursesStatisticalView(self.root, self).create_widgets(assigned)
+        self.main_controller.add_tab(frame, "Nurse Statistics")
+        self.nurse_stats_view = frame
         logging.info("NursesStatisticalView displayed.")
+        return frame
 
-
-    def batch_assign_nurses(self, refresh_view_callback):
+    def batch_assign_nurses(self, update_callback):
         """Handle batch nurse assignment"""
         if self.model.combined_data is None or self.model.combined_data.empty:
             messagebox.showerror("Error", "No data available for batch assignment.")
             return
         
-        BatchAssignView(self.root, self, self.model.batch_update_nurses, refresh_view_callback).display()
         logging.info("BatchAssignView displayed.")
-
+        frame = BatchAssignView(self.root, self, self.model.batch_update_nurses, update_callback).create_widgets()
+        self.main_controller.add_tab(frame, "Batch Assign Nurses")
+        self.batch_assign_view = frame
+        return frame
 
     def assign_nurse(self, child_data, update_callback):
-        AssignNurseView(self.root, self, child_data, update_callback).display()
+        frame = AssignNurseView(self.root, self, child_data, update_callback).create_widgets()
+        self.main_controller.add_tab(frame, "Assign Nurse")
+        self.assign_nurse_view = frame
+        return frame
 
-    def save_nurse(self, nurse_name, child_data, update_callback, close_window_callback):
+    def save_nurse(self, nurse_name, child_data, update_callback, close_callback):
         if nurse_name:
             df = self.model.combined_data
             idx = df[
@@ -145,7 +158,7 @@ class NurseController:
                 
                 update_callback(f"Name: {nurse_name}")
                 # messagebox.showinfo("Success", f"Nurse '{nurse_name}' assigned.")
-                close_window_callback()
+                close_callback()
             else:
                 logging.error("No matching record to update.")
                 messagebox.showerror("Error", "Failed to assign nurse.")
@@ -153,3 +166,22 @@ class NurseController:
             logging.warning("Nurse name empty.")
             messagebox.showerror("Error", "Nurse name cannot be empty.")
     
+    def close_report(self):
+        if self.report_view:
+            self.main_controller.remove_tab(self.report_view)
+            self.report_view = None
+
+    def close_nurse_stats(self):
+        if self.nurse_stats_view:
+            self.main_controller.remove_tab(self.nurse_stats_view)
+            self.nurse_stats_view = None
+    
+    def close_batch_assign(self):
+        if self.batch_assign_view:
+            self.main_controller.remove_tab(self.batch_assign_view)
+            self.batch_assign_view = None
+    
+    def close_assign_nurse(self):
+        if self.assign_nurse_view:
+            self.main_controller.remove_tab(self.assign_nurse_view)
+            self.assign_nurse_view = None
