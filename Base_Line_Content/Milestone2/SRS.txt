@@ -1,0 +1,139 @@
+Software Requirements Specification (SRS)
+Excel Data Combiner Application
+Version 1.0
+January 2025
+
+1. Introduction
+   1.1 Purpose
+       This document outlines the software requirements for the Excel Data Combiner 
+       Application, designed to merge and manage hospital and Medicaid datasets.
+
+   1.2 Scope
+       The system will provide functionality to read, combine, and manage Excel 
+       files containing healthcare data, with features for nurse assignment and 
+       data security.
+
+2. Functional Requirements
+
+   2.1 Excel File Management
+       FR1.1: The system shall allow users to select and load two Excel files
+             (hospital and Medicaid datasets).
+             Test: Verify file selection dialog opens and files load successfully.
+
+       FR1.2: The system shall detect and open encrypted Excel files using Fernet encryption.
+             Test: Verify encrypted files are identified and decrypted properly.
+
+   2.2 Data Combination
+       FR2.1: The system shall merge datasets based on matching:
+             - Mother's First Name
+             - Mother's Last Name
+             - Child's Date of Birth
+             Test: Verify records with matching criteria are combined correctly.
+
+       FR2.2: The system shall identify and store unmatched records separately.
+             Test: Verify unmatched records are saved to 'unmatched_data.xlsx'.
+
+       FR2.3: The system shall identify and store duplicate records separately.
+             Test: Verify duplicate records are saved to 'duplicate_names.xlsx'.
+
+   2.3 Data Display and Search
+       FR3.1: The system shall display combined data in a sortable table format.
+             Test: Verify data is displayed and can be sorted by columns.
+
+       FR3.2: The system shall provide search functionality by:
+             - Mother ID
+             - Child Name
+             - Date of Birth
+             Test: Verify search returns correct results for each criterion.
+
+   2.4 Nurse Assignment
+       FR4.1: The system shall allow individual nurse assignment to children.
+             Test: Verify nurses can be assigned to individual children.
+
+       FR4.2: The system shall support batch nurse assignment based on:
+             - City
+             - State
+             - ZIP Code
+             Test: Verify batch assignment works for specified criteria.
+
+   2.5 User Interface Navigation
+       FR5.1: The system shall provide a tab-based navigation system with the following tabs:
+             - Data Loader
+             - Combined Data View
+             - Unmatched Data View
+             - Duplicate Data View
+             - Profile View
+             - Nurse Statistics
+             - Batch Assign Nurses
+             - Statistical Report
+             Test: Verify user can navigate between all tabs and appropriate content is displayed.
+
+       FR5.2: The system shall maintain state between tab switches.
+             Test: Verify that data persists when switching between tabs.
+
+   2.6 Data Security
+       FR6.1: The system shall encrypt sensitive data files using Fernet encryption.
+             Test: Verify files are properly encrypted when saved.
+
+       FR6.2: The system shall decrypt files using Fernet encryption when accessed with proper credentials.
+             Test: Verify encrypted files can be decrypted for viewing.
+             
+       FR6.3: The system shall log the following operations with timestamps:
+             - File loading
+             - Data combination
+             - Nurse assignments
+             - Encryption/decryption operations
+             - Data export
+             Test: Verify log entries are created for each specified operation.
+
+   2.7 Reporting
+       FR7.1: The system shall generate statistical reports about children and nurse assignments.
+             Test: Verify report generation with complete data.
+
+       FR7.2: The system shall support exporting reports to PDF format.
+             Test: Verify PDF export functionality creates valid PDF files.
+
+3. Non-Functional Requirements
+
+   3.1 Performance
+       NFR1.1: The system shall load Excel files (size ≤ 10MB) within 5 seconds.
+               Test: Time file loading operations.
+
+       NFR1.2: The system shall complete data combination within 10 seconds.
+               Test: Measure data combination execution time.
+
+   3.2 Usability
+       NFR2.1: The system shall provide error messages for all error states.
+               Test: Verify error messages are displayed for various error conditions.
+
+       NFR2.2: The system shall maintain consistent UI layout across all windows.
+               Test: Verify UI elements maintain position and style.
+
+   3.3 Reliability
+       NFR3.1: The system shall handle invalid data formats without crashing.
+               Test: Input invalid data formats and verify graceful handling.
+
+       NFR3.2: The system shall maintain data integrity during encryption/decryption.
+               Test: Verify data remains unchanged after encryption/decryption cycle.
+
+   3.4 Security
+       NFR4.1: The system shall use Fernet symmetric encryption for all data security operations.
+               Test: Verify encryption implementation meets standards.
+
+       NFR4.2: The system shall not store encryption keys in plaintext.
+               Test: Verify key storage security.
+
+   3.5 Maintainability
+       NFR5.1: The system shall follow MVC architecture pattern.
+               Test: Code review to verify separation of concerns.
+
+4. Constraints
+   4.1: The system shall be implemented in Python 3.x
+   4.2: The system shall use tkinter for GUI implementation
+   4.3: The system shall support Excel files (.xlsx format)
+   4.4: The system shall run on Windows, macOS, and Linux platforms
+
+5. Assumptions and Dependencies
+   5.1: Users have appropriate permissions to read/write Excel files
+   5.2: Required Python packages are available and installed
+   5.3: System has sufficient memory to handle Excel file operations 
