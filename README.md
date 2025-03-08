@@ -3,6 +3,7 @@
 The Excel Data Combiner Application is a user-friendly GUI-based tool designed to merge data from two Excel files—typically hospital and Medicaid datasets—into a unified dataset. It enables users to search, filter, and inspect profiles, view unmatched data, assign nurses, and analyze nurse statistics. With additional features like encryption and decryption, it ensures secure handling of sensitive information.
 
 ## Features
+
 - **Read Two Excel Files:** Load hospital and Medicaid datasets for merging.
 - **Combine Data:** Merge datasets based on Mother's First Name, Last Name, and Child's Date of Birth.
 - **Search & Filter:** Search and filter combined data by name, ID, or Date of Birth.
@@ -34,7 +35,8 @@ Ensure the following requirements are met to run the application:
 - `app_crypto`
 
 You can install the required dependencies using pip:
-``` bash
+
+```bash
 pip install pandas openpyxl tkinter reportlab cryptography
 ```
 
@@ -48,11 +50,12 @@ pip install pandas openpyxl tkinter reportlab cryptography
 
 1. Run the `app.py` script:
 
-``` bash
+```bash
 python app.py
 ```
 
 2. The GUI will open with a tab-based interface containing:
+
 - **Data Loader Tab:** Read Excel files and combine datasets.
 - **Combined Data Tab:** View, search, and filter merged data.
 - **Profile View Tab:** Examine detailed information for selected entries.
@@ -73,21 +76,25 @@ python app.py
 - **Analyze Nurse Statistics:** View detailed statistics on nurse assignments.
 - **Generate Reports:** Create statistical reports and export as PDF.
 
-## Application Layout  
+## Application Layout
 
 ### Tab-Based Interface
+
 The application uses a tabbed interface to organize functionality while maintaining application state:
+
 - Switch between tabs without losing data
 - Each functional area has its own dedicated tab
 - New tabs open automatically when needed (e.g., when viewing profiles)
 
 ### Data Loader Tab
+
 - **Read Excel File 1:** Opens a file dialog for selecting the first Excel file.
 - **Read Excel File 2:** Opens a file dialog for selecting the second Excel file.
 - **Combine Data:** Merges the two datasets.
 - **Load Existing File:** Opens previously combined data files.
 
 ### Combined Data Tab
+
 - **Search Bar:** Filter entries by Mother ID, Child Name, or Child DOB.
 - **Results List:** Displays "Mother ID," "Child Name," "Child DOB," and "Assigned Nurse."
 - **Double-click Feature:** Opens a detailed profile for the selected entry in a new tab.
@@ -96,7 +103,9 @@ The application uses a tabbed interface to organize functionality while maintain
 - **Display in Excel:** Opens the data in Excel for additional analysis.
 
 ### Profile View Tab
+
 Displays detailed information including:
+
 - **Mother's Information:** Mother ID, First Name, Last Name.
 - **Child's Information:** First Name, Last Name, Date of Birth.
 - **Contact Information:** Street Address, City, State, ZIP, Phone, and Mobile Number.
@@ -105,24 +114,29 @@ Displays detailed information including:
 - **Copy Profile Info:** Copies the profile details to the clipboard.
 
 ### Unmatched Data Tab
-Includes unmatched data with origin specified and an ability to view the details in a drop-down format. 
+
+Includes unmatched data with origin specified and an ability to view the details in a drop-down format.
 
 ### Duplicate Data Tab
+
 Shows records that appear multiple times across the datasets with detailed information.
 
 ### Nurse Statistics Tab
+
 - **Most Assigned Nurse:** Displays the name of the most assigned nurse with count.
 - **Least Assigned Nurse:** Displays the name of the least assigned nurse with count.
 - **Assignments by Nurse:** Lists all nurses with their assignment counts.
 - **Clickable Nurse Names:** Display assigned children for specific nurses.
 
 ## Security Features
+
 - **Fernet Symmetric Encryption:** Industry-standard encryption for protecting sensitive data.
 - **Automatic Encryption/Decryption:** Files are automatically encrypted after use and decrypted when needed.
 - **Encryption Key Management:** Generate and manage encryption keys securely.
 - **Secure File Handling:** All sensitive data files are protected through encryption.
 
 ## Logging
+
 The application logs key events with timestamps for better traceability:
 
 - **INFO:** Successful operations with timestamps.
@@ -130,11 +144,13 @@ The application logs key events with timestamps for better traceability:
 - **ERROR:** Issues encountered (e.g., data combination errors).
 
 ## Excel File Output
+
 - **Combined Data:** Saved as `combined_matched_data.xlsx` in the current working directory.
 - **Unmatched Data:** Saved as `unmatched_data.xlsx` for records that couldn't be matched.
 - **Duplicate Records:** Saved as `duplicate_names.xlsx` for examination and review.
 
 ## Unit Testing
+
 The application includes comprehensive unit tests to ensure functionality:
 
 - **Test for Reading Excel Files:** Verifies data is correctly loaded and processed.
@@ -145,6 +161,6 @@ The application includes comprehensive unit tests to ensure functionality:
 
 You can run the tests using `pytest` with rich formatting for enhanced readability:
 
-``` bash
+```bash
 pytest --rich --tb=short -v test.py
 ```
