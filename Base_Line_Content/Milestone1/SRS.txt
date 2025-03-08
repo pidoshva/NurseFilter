@@ -58,9 +58,14 @@ January 2025
 
    2.5 User Interface Navigation
        FR5.1: The system shall provide a tab-based navigation system with the following tabs:
-             - Main Data View
-             - Nurse Profile Management
+             - Data Loader
              - Combined Data View
+             - Unmatched Data View
+             - Duplicate Data View
+             - Profile View
+             - Nurse Statistics
+             - Batch Assign Nurses
+             - Statistical Report
              Test: Verify user can navigate between all tabs and appropriate content is displayed.
 
        FR5.2: The system shall maintain state between tab switches.
@@ -80,6 +85,13 @@ January 2025
              - Encryption/decryption operations
              - Data export
              Test: Verify log entries are created for each specified operation.
+
+   2.7 Reporting
+       FR7.1: The system shall generate statistical reports about children and nurse assignments.
+             Test: Verify report generation with complete data.
+
+       FR7.2: The system shall support exporting reports to PDF format.
+             Test: Verify PDF export functionality creates valid PDF files.
 
 3. Non-Functional Requirements
 
