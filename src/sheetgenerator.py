@@ -138,6 +138,36 @@ def check_duplicates(df, list_name, subset_columns):
     else:
         print(f"No duplicates found in {list_name}.\n")
 
+# Function to verify mismatched names
+def verify_names(database_file, medicaid_data_file):
+    database_df = pd.read_excel(database_file)
+    medicaid_df = pd.read_excel(medicaid_data_file)
+
+    database_names = set((database_df["Mother First Name"].str.strip() + " " + database_df["Mother Last Name"].str.strip()).unique())
+    medicaid_names = set((medicaid_df["Mother First Name"].str.strip() + " " + medicaid_df["Last Name"].str.strip()).unique())
+
+    missing_in_medicaid = database_names - medicaid_names
+    missing_in_database = medicaid_names - database_names
+
+    print("\nMismatched Names Found:\n")
+    if missing_in_medicaid:
+        print("Names in Database but missing in Medicaid List:")
+        print("--------------------------------------------------")
+        for name in missing_in_medicaid:
+            print(f"  - {name}")
+        print("\n")
+    else:
+        print("No names missing in Medicaid List.\n")
+
+    if missing_in_database:
+        print("Names in Medicaid List but missing in Database List:")
+        print("--------------------------------------------------")
+        for name in missing_in_database:
+            print(f"  - {name}")
+        print("\n")
+    else:
+        print("No names missing in Database List.\n")
+
 # Main function to generate the files
 def generate_excel_files():
     names_count = int(input("How many names to generate in each list? "))
@@ -176,6 +206,7 @@ def generate_excel_files():
     
     print(f"\nFiles created: {database_filename}, {medicaid_filename}")
     
+    verify_names(database_filename, medicaid_filename)
     check_duplicates(database_data_df, "Database List", ["Child Last Name", "Child First Name", "DOB"])
     check_duplicates(medicaid_data_df, "Medicaid List", ["Mother First Name", "Last Name", "Child DOB"])
 
