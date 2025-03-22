@@ -45,9 +45,17 @@ def generate_database_data(shared_data, unmatched_entries=0, num_duplicates=0):
     database_data = []
     for entry in shared_data:
         state_file_number = fake.unique.random_number(digits=9)
+        street = fake.street_address()
+        city = fake.city()
+        state = fake.state_abbr()
+        zip_ = fake.zipcode()
+        phone = fake.phone_number()
+        mobile = fake.phone_number()
+        
         database_data.append([
             entry["child_last_name"], entry["child_first_name"], entry["child_middle_name"], entry["child_dob"],
-            entry["mom_last_name"], entry["mom_first_name"], state_file_number
+            entry["mom_last_name"], entry["mom_first_name"], state_file_number,
+            street, city, state, zip_, phone, mobile
         ])
 
     # Generate unmatched entries
@@ -59,9 +67,17 @@ def generate_database_data(shared_data, unmatched_entries=0, num_duplicates=0):
         mom_first_name = fake.first_name()
         child_dob = generate_child_dob().strftime("%Y-%m-%d")
         state_file_number = fake.unique.random_number(digits=9)
+        street = fake.street_address()
+        city = fake.city()
+        state = fake.state_abbr()
+        zip_ = fake.zipcode()
+        phone = fake.phone_number()
+        mobile = fake.phone_number()
+
         database_data.append([
             child_last_name, child_first_name, child_middle_name, child_dob,
-            mom_last_name, mom_first_name, state_file_number
+            mom_last_name, mom_first_name, state_file_number,
+            street, city, state, zip_, phone, mobile
         ])
 
     # Generate duplicates
@@ -71,7 +87,8 @@ def generate_database_data(shared_data, unmatched_entries=0, num_duplicates=0):
 
     return pd.DataFrame(database_data, columns=[
         "Child Last Name", "Child First Name", "Child Middle Name", "DOB",
-        "Mother Last Name", "Mother First Name", "State File Number"
+        "Mother Last Name", "Mother First Name", "State File Number",
+        "Street", "City", "State", "ZIP", "Phone #", "Mobile #"
     ])
 
 # Function to generate "Medicaid List" data with optional duplicates
@@ -107,6 +124,20 @@ def generate_medicaid_data(shared_data, unmatched_entries=0, num_duplicates=0):
         "Mother First Name", "Last Name", "Mother DOB", "Mother ID", "Child ID", "Child DOB"
     ])
 
+# Function to check and display formatted duplicate records
+def check_duplicates(df, list_name, subset_columns):
+    duplicates = df[df.duplicated(subset=subset_columns, keep=False)]
+    
+    if not duplicates.empty:
+        print(f"\nDuplicates found in {list_name} (based on {', '.join(subset_columns)}):\n")
+
+        for _, group in duplicates.groupby(subset_columns):
+            print(f"Duplicate Group: {tuple(group.iloc[0][subset_columns])}")
+            print(group.to_string(index=False))  # Formats output beautifully
+            print("-" * 50)  # Divider for clarity
+    else:
+        print(f"No duplicates found in {list_name}.\n")
+
 # Function to verify mismatched names
 def verify_names(database_file, medicaid_data_file):
     database_df = pd.read_excel(database_file)
@@ -136,18 +167,6 @@ def verify_names(database_file, medicaid_data_file):
         print("\n")
     else:
         print("No names missing in Database List.\n")
-
-# Function to check duplicates
-def check_duplicates(df, list_name, subset_columns):
-    duplicates = df[df.duplicated(subset=subset_columns, keep=False)]
-    if not duplicates.empty:
-        print(f"\nDuplicates found in {list_name} (based on {', '.join(subset_columns)}):")
-        for _, group in duplicates.groupby(subset_columns):
-            print(f"\nDuplicate Group: {tuple(group.iloc[0][subset_columns])}")
-            print(group.to_string(index=False))
-            print("--------------------------------------------------")
-    else:
-        print(f"No duplicates found in {list_name}.")
 
 # Main function to generate the files
 def generate_excel_files():
