@@ -145,10 +145,6 @@ class ProfileController:
             self.view = None
 
     def log_nurse_visit(self, child_data, nurse_name=None, visit_time=None):
-        import pandas as pd
-        import os
-        from datetime import datetime
-
         log_file = "nurse_log.xlsx"
         if not nurse_name:
             nurse_name = child_data.get("Assigned_Nurse", "Unknown Nurse")
