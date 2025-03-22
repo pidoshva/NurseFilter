@@ -7,6 +7,8 @@ from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
+import pandas as pd
+from datetime import datetime
 
 class ProfileController:
     def __init__(self, root, child_data, model, main_controller, update_callback):
@@ -16,6 +18,7 @@ class ProfileController:
         self.model = model
         self.update_callback = update_callback
         self.view = None
+        self.visit_log_path = "nurse_log.xlsx"
         logging.info("ProfileController initialized.")
 
     def show_profile(self):
@@ -26,10 +29,12 @@ class ProfileController:
 
     def assign_nurse(self, child_data, update_callback):
         logging.info("Assign Nurse button clicked.")
-        
-        def both_callback(e):
-            update_callback(e)
-            self.update_callback()
+
+        def both_callback(new_name):
+            child_data['Assigned_Nurse'] = new_name # Update current profile’s nurse
+            self.child_data['Assigned_Nurse'] = new_name # Also update in this controller
+            update_callback(new_name)
+            self.update_callback()  # Refresh combined data view
 
         return self.main_controller.assign_nurse(child_data, both_callback)
 
@@ -111,3 +116,51 @@ class ProfileController:
         if self.view:
             self.main_controller.remove_tab(self.view.get_frame())
             self.view = None
+
+    def log_nurse_visit(self, child_data, nurse_name=None, visit_time=None):
+        import pandas as pd
+        import os
+        from datetime import datetime
+
+        log_file = "nurse_log.xlsx"
+        if not nurse_name:
+            nurse_name = child_data.get("Assigned_Nurse", "Unknown Nurse")
+        if not visit_time:
+            visit_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        visit_entry = {
+            "Mother_ID": child_data.get("Mother_ID", "N/A"),
+            "Child_First_Name": child_data.get("Child_First_Name", "N/A"),
+            "Child_Last_Name": child_data.get("Child_Last_Name", "N/A"),
+            "Nurse_Name": nurse_name,
+            "Visit_Time": visit_time
+        }
+
+        if os.path.exists(log_file):
+            df = pd.read_excel(log_file)
+        else:
+            df = pd.DataFrame(columns=["Visit_ID", "Mother_ID", "Child_First_Name", "Child_Last_Name", "Nurse_Name", "Visit_Time"])
+
+        # 🛠 Assign correct Visit ID (not scientific format)
+        next_id = 1 if df.empty else int(df["Visit_ID"].max()) + 1
+        visit_entry["Visit_ID"] = next_id
+
+        df = pd.concat([df, pd.DataFrame([visit_entry])], ignore_index=True)
+        df.to_excel(log_file, index=False)
+
+        # Refresh view
+        if self.view:
+            self.view.update_visit_log()
+
+
+    def get_nurse_visits(self, child_data):
+        if not os.path.exists(self.visit_log_path):
+            return []
+
+        df = pd.read_excel(self.visit_log_path)
+        filtered = df[
+            (df['Mother_ID'] == child_data.get("Mother_ID")) &
+            (df['Child_First_Name'].str.lower() == str(child_data.get("Child_First_Name", "")).lower()) &
+            (df['Child_Last_Name'].str.lower() == str(child_data.get("Child_Last_Name", "")).lower())
+        ]
+        return filtered.to_dict(orient='records')
