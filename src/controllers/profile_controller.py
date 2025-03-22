@@ -101,6 +101,33 @@ class ProfileController:
                     c.drawString(1.2 * inch, y, line.strip())
                     y -= 12
 
+            # Visit Log
+            path = "nurse_log.xlsx"
+            mother_id = str(self.child_data.get("Mother_ID", ""))
+            first = self.child_data.get("Child_First_Name", "").lower()
+            last = self.child_data.get("Child_Last_Name", "").lower()
+            if os.path.exists(path):
+                df = pd.read_excel(path)
+                filtered = df[
+                    (df["Mother_ID"].astype(str) == mother_id) &
+                    (df["Child_First_Name"].str.lower() == first) &
+                    (df["Child_Last_Name"].str.lower() == last)
+                ]
+
+                if not filtered.empty:
+                    y = draw_section_header("Nurse Visit Log", y - 10)
+                    c.setFont("Helvetica-Bold", 10)
+                    c.drawString(1.2 * inch, y, f"{'Nurse Name':<25} {'Visit Time'}")
+                    y -= 12
+                    c.setFont("Helvetica", 10)
+                    for _, row in filtered.iterrows():
+                        c.drawString(1.2 * inch, y, f"{row['Nurse_Name']:<25} {row['Visit_Time']}")
+                        y -= 12
+                        if y < 1 * inch:
+                            c.showPage()
+                            y = 10.5 * inch
+                            c.setFont("Helvetica", 10)
+
             c.save()
             if os.name == 'nt':
                 os.startfile(pdf_file.name)
