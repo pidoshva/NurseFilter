@@ -103,6 +103,23 @@ class ProfileView:
         log_btn_frame = tk.Frame(log_frame)
         log_btn_frame.pack(pady=(0,10))
         tk.Button(log_btn_frame, text="Auto Log Visit", command=self.auto_log_visit).pack(side=tk.LEFT, padx=5)
+        
+        # Manual Log Visit with Entry boxes
+        entry_frame = tk.Frame(log_btn_frame)
+        entry_frame.pack(side=tk.LEFT, padx=5)
+
+        self.nurse_name_entry = tk.Entry(entry_frame, width=25)
+        self.nurse_name_entry.pack(anchor='w', pady=(0, 5))
+        self.nurse_name_entry.insert(0, "Nurse Name")
+        self.nurse_name_entry.bind("<FocusIn>", self.clear_placeholder)
+        self.nurse_name_entry.bind("<FocusOut>", self.add_placeholder)
+
+        self.visit_time_entry = tk.Entry(entry_frame, width=25)
+        self.visit_time_entry.pack(anchor='w', pady=(0, 5))
+        self.visit_time_entry.insert(0, "YYYY-MM-DD HH:MM:SS")
+        self.visit_time_entry.bind("<FocusIn>", self.clear_placeholder)
+        self.visit_time_entry.bind("<FocusOut>", self.add_placeholder)
+
         tk.Button(log_btn_frame, text="Manual Log Visit", command=self.manual_log_visit).pack(side=tk.LEFT, padx=5)
 
         self.update_visit_log()
@@ -122,6 +139,21 @@ class ProfileView:
         frame.grid_rowconfigure(1, weight=0)
 
         return self.view
+    
+    def clear_placeholder(self, event):
+        widget = event.widget
+        if widget.get() in ["Nurse Name", "YYYY-MM-DD HH:MM:SS"]:
+            widget.delete(0, tk.END)
+            widget.config(fg='black')
+
+    def add_placeholder(self, event):
+        widget = event.widget
+        if widget == self.nurse_name_entry and not widget.get():
+            widget.insert(0, "Nurse Name")
+            widget.config(fg='grey')
+        elif widget == self.visit_time_entry and not widget.get():
+            widget.insert(0, "YYYY-MM-DD HH:MM:SS")
+            widget.config(fg='grey')
 
     def assign_nurse(self):
         self.controller.assign_nurse(self.child_data , self.update_nurse_info)
@@ -181,17 +213,20 @@ class ProfileView:
         messagebox.showinfo("Success", f"Visit logged for nurse {nurse_name}.")
 
     def manual_log_visit(self):
-        nurse_name = simpledialog.askstring("Manual Log", "Enter Nurse Name:")
+        nurse_name = self.nurse_name_entry.get().strip()
+        time_str = self.visit_time_entry.get().strip()
+
         if not nurse_name:
+            messagebox.showerror("Error", "Nurse name cannot be empty.")
             return
-        time_str = simpledialog.askstring("Manual Log", "Enter Visit Time (YYYY-MM-DD HH:MM:SS):")
+
         try:
             datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S")
-        except Exception:
+        except ValueError:
             messagebox.showerror("Error", "Invalid time format.")
             return
 
-        self.save_nurse_log(nurse_name.strip(), time_str)
+        self.save_nurse_log(nurse_name, time_str)
         self.update_visit_log()
         messagebox.showinfo("Success", f"Visit logged for nurse {nurse_name}.")
 
