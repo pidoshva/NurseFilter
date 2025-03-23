@@ -26,7 +26,9 @@ class CombinedDataController:
             logging.info(f"Combined data has {len(self.model.combined_data)} records.")
             # Calculate unmatched count
             unmatched_count = len(self.model.unmatched_data) if self.model.unmatched_data is not None else 0
-            self.view = CombinedDataView(self.root, self, self.model.combined_data, unmatched_count=unmatched_count)
+            duplicate_count = len(self.model.duplicate_data) if self.model.duplicate_data is not None else 0
+            print (f"Unmatched Count: {unmatched_count}, Duplicate Count: {duplicate_count}")
+            self.view = CombinedDataView(self.root, self, self.model.combined_data, unmatched_count, duplicate_count)
             frame = self.view.create_widgets()
             self.main_controller.add_tab(frame, "Combined Data")
         else:
@@ -64,10 +66,13 @@ class CombinedDataController:
         if self.view:
             try:
                 # Reload fresh data from Excel
-                fresh_data = pd.read_excel('combined_matched_data.xlsx')
+                fresh_data = self.model.updated_data()
+                
+                if fresh_data is None or fresh_data.empty:
+                    messagebox.showerror("Error", "No fresh data available to refresh the view.")
+                    return
                 
                 # Update all data sources
-                self.model.combined_data = fresh_data
                 self.view.combined_data = fresh_data
                 self.view.filtered_data = fresh_data
                 

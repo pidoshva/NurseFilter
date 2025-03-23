@@ -149,8 +149,9 @@ class DataModel:
                 if col in combined.columns:
                     combined[col] = combined[col].astype(str).str.capitalize()
 
-            if 'Assigned_Nurse' not in combined.columns:
-                combined['Assigned_Nurse'] = None
+             # Check and set 'Assigned_Nurse' column to None if it has no value
+            if 'Assigned_Nurse' in combined.columns:
+                combined['Assigned_Nurse'] = combined['Assigned_Nurse'].fillna('None')
 
             combined.to_excel('combined_matched_data.xlsx', index=False)
             self.combined_data = combined
@@ -174,11 +175,9 @@ class DataModel:
 
             df = pd.read_excel(path)
 
-            # Fix data type issues
-            df = df.astype(str).fillna("None")
-
-            if 'Assigned_Nurse' not in df.columns:
-                df['Assigned_Nurse'] = None
+            # Check and set 'Assigned_Nurse' column to None if it has no value
+            if 'Assigned_Nurse' in df.columns:
+                df['Assigned_Nurse'] = df['Assigned_Nurse'].fillna('None')
 
             self.combined_data = df
 
@@ -187,6 +186,12 @@ class DataModel:
                 self.unmatched_data = pd.read_excel(unmatched_path)
             else:
                 self.unmatched_data = pd.DataFrame()
+
+            duplicate_path = 'duplicate_names.xlsx'
+            if os.path.exists(duplicate_path):
+                self.duplicate_data = pd.read_excel(duplicate_path)
+            else:
+                self.duplicate_data = pd.DataFrame()
 
             return True
 
@@ -253,3 +258,40 @@ class DataModel:
         if row.empty:
             return None
         return row.iloc[0]
+    
+    def updated_data(self):
+        """
+        Return the current state of the combined data and unmatched data DataFrames.
+        """
+        path = 'combined_matched_data.xlsx'
+        if not os.path.exists(path):
+            messagebox.showerror("Error", "No combined data file found. Cannot Refresh")
+            return False
+        
+        try:
+
+            df = pd.read_excel(path)
+
+            # Check and set 'Assigned_Nurse' column to None if it has no value
+            if 'Assigned_Nurse' in df.columns:
+                df['Assigned_Nurse'] = df['Assigned_Nurse'].fillna('None')
+
+            self.combined_data = df
+
+            unmatched_path = 'unmatched_data.xlsx'
+            if os.path.exists(unmatched_path):
+                self.unmatched_data = pd.read_excel(unmatched_path)
+            else:
+                self.unmatched_data = pd.DataFrame()
+
+            duplicate_path = 'duplicate_names.xlsx'
+            if os.path.exists(duplicate_path):
+                self.duplicate_data = pd.read_excel(duplicate_path)
+            else:
+                self.duplicate_data = pd.DataFrame()
+
+            return self.combined_data
+        
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to refresh combined data: {e}")
+            return None
