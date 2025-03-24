@@ -30,9 +30,19 @@ class CombinedDataView:
         top_frame = tk.Frame(self.combined_window)
         top_frame.pack(fill=tk.X, padx=5, pady=5)
 
+        # Create a frame for the search bar and clear button
+        search_frame = tk.Frame(top_frame)
+        search_frame.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
+
         self.search_var = tk.StringVar()
-        search_entry = tk.Entry(top_frame, textvariable=self.search_var)
-        search_entry.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
+        search_entry = tk.Entry(search_frame, textvariable=self.search_var)
+        search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        # Add binding to search when Enter key is pressed
+        search_entry.bind('<Return>', lambda event: self.search_data())
+
+        # Add clear button (X) within the search bar area
+        clear_button = tk.Button(search_frame, text="✕", command=self.clear_search, width=2)
+        clear_button.pack(side=tk.LEFT)
 
         search_button = tk.Button(top_frame, text="Search", command=self.search_data)
         search_button.pack(side=tk.LEFT, padx=5)
@@ -204,4 +214,10 @@ class CombinedDataView:
         df.drop(columns=['dob_temp'], inplace=True)
 
         self.filtered_data = df
+        self.update_treeview(self.filtered_data)
+
+    # Add a new method to clear the search
+    def clear_search(self):
+        self.search_var.set("")
+        self.filtered_data = self.combined_data.copy()
         self.update_treeview(self.filtered_data)

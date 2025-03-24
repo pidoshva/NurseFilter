@@ -2,6 +2,7 @@ import logging
 import tkinter as tk
 from tkinter import messagebox, filedialog
 from views.initial_view import InitialView
+import os
 
 
 class InitialController:
@@ -26,7 +27,10 @@ class InitialController:
     # 1. Reading Excel Files
     def read_excel_file(self):
         logging.info("Selecting Excel file...")
-        filepath = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx *.xls")])
+        filepath = filedialog.askopenfilename(
+            initialdir=os.getcwd(),
+            filetypes=[("Excel files", "*.xlsx *.xls")]
+        )
         if not filepath:
             return
         # Decrypt if needed
@@ -46,11 +50,17 @@ class InitialController:
         if self.model.combine_data():
             logging.info("Data combined successfully.")
             self.load_combined_data()
-            self.main_controller.remove_tab(self.view)
-
+            # We don't need to remove the tab here, it's already removed in load_combined_data()
+            # This prevents trying to remove the same tab twice
 
     def load_combined_data(self):
         if self.model.load_combined_data():
             logging.info("Combined data loaded successfully.")
             self.main_controller.show_combined_data()
-            self.main_controller.remove_tab(self.view)
+            try:
+                # Add error handling here
+                if self.view and self.view.winfo_exists():
+                    self.main_controller.remove_tab(self.view)
+                    self.view = None  # Set to None after removal to avoid multiple attempts
+            except Exception as e:
+                logging.warning(f"Error removing tab: {e}")
