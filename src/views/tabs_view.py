@@ -1,5 +1,8 @@
 from tkinter import ttk
 import tkinter as tk
+from PIL import Image, ImageTk
+import os
+
 
 
 class TabsView:
@@ -10,8 +13,31 @@ class TabsView:
 
     def create_widgets(self):
         self.root.deiconify()
-        self.root.title("Data Viewer")
+        self.root.title("NurseFilter")
         self.root.geometry("1200x700")
+        
+        # Set application icon - with improved quality
+        try:
+            icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "nursefilter_icon.png")
+            
+            # Load at larger size and with antialiasing for better quality
+            original_image = Image.open(icon_path)
+            
+            # Create multiple sizes for different resolutions
+            icons = []
+            for size in (16, 32, 48, 64, 128):
+                resized_img = original_image.resize((size, size), Image.Resampling.LANCZOS)
+                icons.append(ImageTk.PhotoImage(resized_img))
+            
+            # Set all sizes as icon
+            self.root.iconphoto(True, *icons)
+            
+            # Keep reference to prevent garbage collection
+            self.icon_images = icons
+            
+        except Exception as e:
+            print(f"Could not set icon: {e}")
+            
         notebook = ttk.Notebook(self.root)
         notebook.pack(fill=tk.BOTH, expand=True)
         self.notebook = notebook
