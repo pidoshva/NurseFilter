@@ -9,7 +9,7 @@ class CombinedDataView:
     plus search, sort by DOB, nurse stats, batch assign, unmatched, etc.
     """
 
-    def __init__(self, root, controller, combined_data, unmatched_count=0):
+    def __init__(self, root, controller, combined_data, unmatched_count=0, duplicate_count=0):
         self.root = root
         self.controller = controller
 
@@ -18,6 +18,7 @@ class CombinedDataView:
 
         self.sort_ascending = True
         self.unmatched_count = unmatched_count
+        self.duplicate_count = duplicate_count
 
         logging.info("CombinedDataView initialized.")
 
@@ -104,7 +105,7 @@ class CombinedDataView:
             count_label.place(relx=1.0, rely=0.0, anchor="ne")
 
         # If there are duplicate rows, show a button with a blue badge
-        if self.controller.model.duplicate_data is not None and not self.controller.model.duplicate_data.empty:
+        if self.duplicate_count > 0:
             duplicate_button = tk.Button(bottom_frame, text="View Duplicate Data", command=self.controller.view_duplicate_data)
             duplicate_button.pack(side=tk.LEFT, padx=10)
             # Badge
