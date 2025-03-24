@@ -2,6 +2,7 @@ import tkinter as tk
 import pandas as pd
 import logging
 from tkinter import ttk, messagebox
+from views.tooltip import add_tooltip
 
 class CombinedDataView:
     """
@@ -43,13 +44,16 @@ class CombinedDataView:
         # Add clear button (X) within the search bar area
         clear_button = tk.Button(search_frame, text="✕", command=self.clear_search, width=2)
         clear_button.pack(side=tk.LEFT)
+        add_tooltip(search_entry, "Search by name, ID, date of birth, or nurse name")
 
         search_button = tk.Button(top_frame, text="Search", command=self.search_data)
         search_button.pack(side=tk.LEFT, padx=5)
+        add_tooltip(search_button, "Search for specific records based on your search terms")
 
         # Sort by DOB
         self.sort_button = tk.Button(top_frame, text="Sort by DOB ▲", command=self.sort_by_dob)
         self.sort_button.pack(side=tk.LEFT, padx=5)
+        add_tooltip(self.sort_button, "Sort the list by date of birth (toggle ascending/descending)")
 
         # Nurse Statistics
         nurse_stats_button = tk.Button(
@@ -58,10 +62,12 @@ class CombinedDataView:
             command=self.controller.show_nurse_statistics
         )
         nurse_stats_button.pack(side=tk.LEFT, padx=5)
+        add_tooltip(nurse_stats_button, "View statistics about nurse assignments and caseloads")
 
         # Treeview
         columns = ("Mother_ID", "First_Name", "Last_Name", "Date_of_Birth", "Assigned_Nurse")
         self.treeview = ttk.Treeview(self.combined_window, columns=columns, show='headings')
+        add_tooltip(self.treeview, "Double-click on a record to view or edit a child's detailed profile")
 
         # Set column headings with proper labels
         column_headers = {
@@ -95,20 +101,24 @@ class CombinedDataView:
         excel_btn = tk.Button(bottom_frame, text="Display in Excel",
                               command=self.controller.display_in_excel)
         excel_btn.pack(side=tk.LEFT, padx=10)
+        add_tooltip(excel_btn, "Open the current data in Excel for additional viewing or editing")
 
         batch_btn = tk.Button(bottom_frame, text="Batch Assign Nurses",
                               command=self.controller.batch_assign_nurses)
         batch_btn.pack(side=tk.LEFT, padx=10)
+        add_tooltip(batch_btn, "Assign nurses to multiple children at once using criteria")
 
         report_btn = tk.Button(bottom_frame, text="Generate Report",
                                command=self.controller.generate_report)
         report_btn.pack(side=tk.LEFT, padx=10)
+        add_tooltip(report_btn, "Generate a statistical report of the current data")
 
         # If there are unmatched rows, show a button w/ a red badge
         if self.unmatched_count > 0:
             unmatched_button = tk.Button(bottom_frame, text="View Unmatched Data",
                                          command=self.controller.view_unmatched_data)
             unmatched_button.pack(side=tk.LEFT, padx=10)
+            add_tooltip(unmatched_button, f"View {self.unmatched_count} records that couldn't be matched between datasets")
             # Badge
             count_label = tk.Label(unmatched_button, text=str(self.unmatched_count),
                                    bg="red", fg="white", font=("Arial", 10, "bold"))
@@ -120,6 +130,7 @@ class CombinedDataView:
             duplicate_button.pack(side=tk.LEFT, padx=10)
             # Badge
             duplicate_count = int((len(self.controller.model.duplicate_data))/2)
+            add_tooltip(duplicate_button, f"View {duplicate_count} potentially duplicate records that need review")
             dup_count_label = tk.Label(duplicate_button, text=str(duplicate_count),
                                     bg="blue", fg="white", font=("Arial", 10, "bold"))
             dup_count_label.place(relx=1.0, rely=0.0, anchor="ne")

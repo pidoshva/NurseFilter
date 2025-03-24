@@ -55,25 +55,102 @@ class DataModel:
             return False
 
     # Reading & Combining
-    def read_excel_file(self, filepath):
+    def read_excel_file(self, filepath, progress_callback=None):
+        """
+        Read an Excel file and store the data.
+        
+        Args:
+            filepath: Path to the Excel file
+            progress_callback: Optional callback for progress updates
+            
+        Returns:
+            The pandas DataFrame if successful, None otherwise
+        """
         try:
+            # Report initial progress
+            if progress_callback:
+                progress_callback("Checking file", 10)
+                
+            # Check if the file exists
+            if not os.path.exists(filepath):
+                if progress_callback:
+                    progress_callback("File not found", 100)
+                return None
+                
+            # Check file size and handle large files
+            file_size = os.path.getsize(filepath)
+            if file_size > 5_000_000:  # 5MB
+                if progress_callback:
+                    progress_callback("Reading large file", 20)
+                    
+            # Check and decrypt if needed
+            if self.is_file_encrypted(filepath, logging=False):
+                if progress_callback:
+                    progress_callback("Decrypting file", 30)
+                if not self.decrypt_file(filepath):
+                    return None
+                    
+            # Report progress before reading
+            if progress_callback:
+                progress_callback("Reading data", 40)
+                
+            # Read the Excel file
             data = pd.read_excel(filepath, engine='openpyxl')
+            
+            # Report progress after reading
+            if progress_callback:
+                progress_callback("Processing data", 70)
+                
+            # Process column names
             data.columns = [c.replace(" ", "_") for c in data.columns]
+            
+            # Store the data frame
             self.data_frames.append(data)
+            
+            # Final progress
+            if progress_callback:
+                progress_callback("Completed", 100)
+                
             logging.info(f"Data read from {filepath}")
             return data
+            
         except Exception as e:
             logging.error(f"Error reading '{filepath}': {e}")
-            messagebox.showerror("Error", f"Error reading file '{filepath}': {e}")
+            
+            # Report error
+            if progress_callback:
+                progress_callback("Error reading file", 100)
+                
+            messagebox.showerror("Error", f"Error reading file")
             return None
 
-    def combine_data(self):
+    def combine_data(self, progress_callback=None):
+        """
+        Combine database and Medicaid data.
+        
+        Args:
+            progress_callback: Optional callback for progress updates
+            
+        Returns:
+            True if successful, False otherwise
+        """
         if len(self.data_frames) < 2:
+            if progress_callback:
+                progress_callback("Need two files", 100)
             messagebox.showerror("Error", "Please load two Excel files before combining data.")
             return False
+            
         try:
+            # Initial progress
+            if progress_callback:
+                progress_callback("Preparing data", 10)
+                
             db_df = self.data_frames[0].copy()
             med_df = self.data_frames[1].copy()
+
+            # Progress update
+            if progress_callback:
+                progress_callback("Normalizing data", 20)
 
             # Rename columns if needed
             if 'DOB' in db_df.columns:
@@ -83,21 +160,37 @@ class DataModel:
             if 'Last_Name' in med_df.columns:
                 med_df.rename(columns={'Last_Name': 'Mother_Last_Name'}, inplace=True)
 
+            # Progress update
+            if progress_callback:
+                progress_callback("Processing names", 30)
+                
             # Normalize mother names
             for df in [db_df, med_df]:
                 for col in ['Mother_First_Name', 'Mother_Last_Name']:
                     if col in df.columns:
                         df[col] = df[col].astype(str).str.lower().str.replace(r'\W', '', regex=True)
 
+            # Progress update
+            if progress_callback:
+                progress_callback("Processing dates", 40)
+                
             # Convert child DOB
             db_df['Child_Date_of_Birth'] = pd.to_datetime(db_df['Child_Date_of_Birth'], errors='coerce').dt.strftime('%Y-%m-%d')
             med_df['Child_Date_of_Birth'] = pd.to_datetime(med_df['Child_Date_of_Birth'], errors='coerce').dt.strftime('%Y-%m-%d')
 
+            # Progress update
+            if progress_callback:
+                progress_callback("Merging data", 50)
+                
             # Merge
             combined = pd.merge(db_df, med_df,
                                 on=['Mother_First_Name', 'Mother_Last_Name', 'Child_Date_of_Birth'],
                                 how='inner', suffixes=('_db', '_medicaid'))
 
+            # Progress update
+            if progress_callback:
+                progress_callback("Processing duplicates", 60)
+                
             # Identify duplicates in the combined dataset
             duplicate_rows = combined[combined.duplicated(subset=['Mother_ID', 'Child_First_Name', 'Child_Last_Name'], keep=False)].copy()
             
@@ -107,6 +200,10 @@ class DataModel:
             else:
                 self.duplicate_data = pd.DataFrame()
 
+            # Progress update
+            if progress_callback:
+                progress_callback("Finding unmatched records", 70)
+                
             # Identify unmatched records
             unmatched_db = db_df[~db_df.apply(
                 lambda row: (
@@ -128,6 +225,10 @@ class DataModel:
             )].copy()
             unmatched_med['Source'] = 'Medicaid'
 
+            # Progress update
+            if progress_callback:
+                progress_callback("Processing unmatched data", 80)
+                
             if not unmatched_db.empty or not unmatched_med.empty:
                 combined_cols = list(combined.columns)
                 unmatched_db = unmatched_db.reindex(columns=combined_cols + ['Source'], fill_value='')
@@ -144,6 +245,10 @@ class DataModel:
             else:
                 self.unmatched_data = pd.DataFrame()
 
+            # Progress update
+            if progress_callback:
+                progress_callback("Finalizing data", 90)
+                
             # Capitalize combined columns
             for col in ['Mother_First_Name', 'Mother_Last_Name', 'Child_First_Name', 'Child_Last_Name']:
                 if col in combined.columns:
@@ -153,34 +258,82 @@ class DataModel:
             if 'Assigned_Nurse' in combined.columns:
                 combined['Assigned_Nurse'] = combined['Assigned_Nurse'].fillna('None')
 
+            # Progress update
+            if progress_callback:
+                progress_callback("Saving data", 95)
+                
             combined.to_excel('combined_matched_data.xlsx', index=False)
             self.combined_data = combined
+            
+            # Final progress
+            if progress_callback:
+                progress_callback("Complete", 100)
+                
             return True
 
         except Exception as e:
             logging.error(f"Error combining data: {e}")
-            messagebox.showerror("Error", f"Error combining data: {e}")
+            
+            # Report error
+            if progress_callback:
+                progress_callback("Error combining data", 100)
+                
+            messagebox.showerror("Error", "Error combining data")
             return False
 
 
-    def load_combined_data(self):
+    def load_combined_data(self, progress_callback=None):
+        """
+        Load the combined data from the saved Excel file.
+        
+        Args:
+            progress_callback: Optional callback for progress updates
+            
+        Returns:
+            True if successful, False otherwise
+        """
         path = 'combined_matched_data.xlsx'
+        
+        # Initial progress
+        if progress_callback:
+            progress_callback("Checking file", 10)
+            
         if not os.path.exists(path):
+            if progress_callback:
+                progress_callback("File not found", 100)
             messagebox.showerror("Error", "No combined data file found. Please combine data first.")
             return False
 
         try:
+            # Check encryption
+            if progress_callback:
+                progress_callback("Checking encryption", 20)
+                
             if self.is_file_encrypted(path):
+                if progress_callback:
+                    progress_callback("Decrypting file", 30)
                 self.decrypt_file(path)
 
+            # Read data
+            if progress_callback:
+                progress_callback("Reading data", 40)
+                
             df = pd.read_excel(path)
 
+            # Process data
+            if progress_callback:
+                progress_callback("Processing data", 60)
+                
             # Check and set 'Assigned_Nurse' column to None if it has no value
             if 'Assigned_Nurse' in df.columns:
                 df['Assigned_Nurse'] = df['Assigned_Nurse'].fillna('None')
 
             self.combined_data = df
 
+            # Load supplementary files
+            if progress_callback:
+                progress_callback("Loading additional files", 80)
+                
             unmatched_path = 'unmatched_data.xlsx'
             if os.path.exists(unmatched_path):
                 self.unmatched_data = pd.read_excel(unmatched_path)
@@ -193,10 +346,20 @@ class DataModel:
             else:
                 self.duplicate_data = pd.DataFrame()
 
+            # Complete
+            if progress_callback:
+                progress_callback("Complete", 100)
+                
             return True
 
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to load combined data: {e}")
+            logging.error(f"Error loading combined data: {e}")
+            
+            # Report error
+            if progress_callback:
+                progress_callback("Error loading data", 100)
+                
+            messagebox.showerror("Error", "Failed to load combined data")
             return False
 
 
