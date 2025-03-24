@@ -43,7 +43,7 @@ class Crypto:
         with open(file_path, "wb") as file:
             file.write(decrypted_data)
 
-    def is_encrypted(filepath):
+    def is_encrypted(filepath, loggingFlag):
         """
         Checks if a file is encrypted with Fernet.
 
@@ -63,8 +63,10 @@ class Crypto:
             with open(filepath, 'rb') as file:
                 data = file.read()
                 fernet.decrypt(data)
-                logging.info(f"File '{filepath}' is encrypted.")
+                if loggingFlag:
+                    logging.info(f"File '{filepath}' is encrypted.")
                 return True
         except Exception as e:
-            logging.info(f"File '{filepath}' is not encrypted or decryption failed: {e}")
+            if loggingFlag:
+                logging.info(f"File '{filepath}' is not encrypted or decryption failed: {e}")
             return False
