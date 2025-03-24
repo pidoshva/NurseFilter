@@ -4,7 +4,7 @@
 venv/
 
 # Excel files
-# *.xlsx
+*.xlsx
 
 # Specific files (if needed)
 *venv/
