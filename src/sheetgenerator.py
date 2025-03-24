@@ -97,8 +97,13 @@ def generate_medicaid_data(shared_data, unmatched_entries=0, num_duplicates=0):
     for entry in shared_data:
         mom_dob = fake.date_of_birth(minimum_age=18, maximum_age=50).strftime("%Y-%m-%d")
         child_id = fake.unique.random_number(digits=5)
+        phone = fake.phone_number()
+        city = fake.city()
+        zip_ = fake.zipcode()
+        street_address = fake.street_address()
+
         medicaid_data.append([
-            entry["mom_first_name"], entry["mom_last_name"], mom_dob, entry["mother_id"], child_id, entry["child_dob"]
+            entry["mom_first_name"], entry["mom_last_name"], mom_dob, entry["mother_id"], child_id, entry["child_dob"], city, zip_,phone,street_address
         ])
 
     # Generate unmatched entries
@@ -111,8 +116,13 @@ def generate_medicaid_data(shared_data, unmatched_entries=0, num_duplicates=0):
         child_dob = generate_child_dob().strftime("%Y-%m-%d")
         mother_id = fake.unique.random_number(digits=9)
         child_id = fake.unique.random_number(digits=5)
+        city = fake.city()
+        zip_ = fake.zipcode()
+        phone = fake.phone_number()
+        street_address = fake.street_address()
+        
         medicaid_data.append([
-            mom_first_name, mom_last_name, mom_dob, mother_id, child_id, child_dob
+            mom_first_name, mom_last_name, mom_dob, mother_id, child_id, child_dob, city, zip_, phone, street_address
         ])
 
     # Generate duplicates
@@ -121,7 +131,7 @@ def generate_medicaid_data(shared_data, unmatched_entries=0, num_duplicates=0):
         medicaid_data.append(duplicate)
 
     return pd.DataFrame(medicaid_data, columns=[
-        "Mother First Name", "Last Name", "Mother DOB", "Mother ID", "Child ID", "Child DOB"
+        "Mother First Name", "Last Name", "Mother DOB", "Mother ID", "Child ID", "Child DOB","City","Zip","Phone","Street_address"
     ])
 
 # Function to check and display formatted duplicate records
@@ -213,3 +223,4 @@ def generate_excel_files():
 # Run the program
 if __name__ == "__main__":
     generate_excel_files()
+

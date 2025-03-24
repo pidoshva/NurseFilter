@@ -50,7 +50,7 @@ class CombinedDataView:
         nurse_stats_button.pack(side=tk.LEFT, padx=5)
 
         # Treeview
-        columns = ("Mother_ID", "First_Name", "Last_Name", "Date_of_Birth", "Assigned_Nurse")
+        columns = ("Mother_ID", "First_Name", "Last_Name", "Date_of_Birth","City_db","Zip","Phone_#","Street_address", "Assigned_Nurse")
         self.treeview = ttk.Treeview(self.combined_window, columns=columns, show='headings')
 
         # Set column headings with proper labels
@@ -59,7 +59,12 @@ class CombinedDataView:
             "First_Name": "First Name",
             "Last_Name": "Last Name", 
             "Date_of_Birth": "Date of Birth",
+            "City_db":"City_db",
+            "Zip":"Zip",
+            "Phone_#":"Phone_#",
+            "Street_address":"Street_address",
             "Assigned_Nurse": "Assigned Nurse"
+
         }
         
         for col in columns:
@@ -129,6 +134,11 @@ class CombinedDataView:
                 row.get('Child_First_Name', ''),
                 row.get('Child_Last_Name', ''),
                 row.get('Child_Date_of_Birth', ''),
+                row.get('City_db',''),
+                row.get('Zip',''),
+                row.get('Phone_#',''),
+                row.get('Street_address',''),
+
                 row.get('Assigned_Nurse', 'None')  # Ensure 'None' is displayed if no nurse
             ]
             self.treeview.insert('', 'end', values=values)
@@ -149,7 +159,7 @@ class CombinedDataView:
             try:
                 vals = self.treeview.item(selection[0])['values']
                 # Update unpacking to match actual columns (Mother_ID, First, Last, DOB, Nurse)
-                mother_id, child_first_name, child_last_name, dob, nurse = vals
+                mother_id, child_first_name, child_last_name, dob, City, Zip,Phone,Street, nurse = vals
                 
                 # Locate the child's data in the combined DataFrame
                 child_data = self.controller.model.combined_data[
