@@ -3,6 +3,7 @@ import os
 import pandas as pd
 from tkinter import messagebox
 from app_crypto import Crypto
+import time
 
 class DataModel:
     """
@@ -68,6 +69,7 @@ class DataModel:
             return None
 
     def combine_data(self):
+        start_time = time.time()
         if len(self.data_frames) < 2:
             messagebox.showerror("Error", "Please load two Excel files before combining data.")
             return False
@@ -83,24 +85,29 @@ class DataModel:
             if 'Last_Name' in med_df.columns:
                 med_df.rename(columns={'Last_Name': 'Mother_Last_Name'}, inplace=True)
 
-            # Normalize mother names
+            # Normalize mother names and create key
             for df in [db_df, med_df]:
                 for col in ['Mother_First_Name', 'Mother_Last_Name']:
                     if col in df.columns:
                         df[col] = df[col].astype(str).str.lower().str.replace(r'\W', '', regex=True)
+                df['Child_Date_of_Birth'] = pd.to_datetime(df['Child_Date_of_Birth'], errors='coerce').dt.strftime('%Y-%m-%d')
+                df['Match_Key'] = (
+                    df['Mother_First_Name'] + '_' +
+                    df['Mother_Last_Name'] + '_' +
+                    df['Child_Date_of_Birth']
+                )
 
-            # Convert child DOB
-            db_df['Child_Date_of_Birth'] = pd.to_datetime(db_df['Child_Date_of_Birth'], errors='coerce').dt.strftime('%Y-%m-%d')
-            med_df['Child_Date_of_Birth'] = pd.to_datetime(med_df['Child_Date_of_Birth'], errors='coerce').dt.strftime('%Y-%m-%d')
+            # Merge on optimized hash key
+            combined = pd.merge(db_df, med_df, on='Match_Key', how='inner', suffixes=('_db', '_medicaid'))
 
-            # Merge
-            combined = pd.merge(db_df, med_df,
-                                on=['Mother_First_Name', 'Mother_Last_Name', 'Child_Date_of_Birth'],
-                                how='inner', suffixes=('_db', '_medicaid'))
+            # Restore key columns after merge
+            for col in ['Mother_First_Name', 'Mother_Last_Name', 'Child_Date_of_Birth']:
+                if col + '_db' in combined.columns:
+                    combined[col] = combined[col + '_db']
+                    combined.drop([col + '_db', col + '_medicaid'], axis=1, errors='ignore', inplace=True)
 
             # Identify duplicates in the combined dataset
             duplicate_rows = combined[combined.duplicated(subset=['Mother_ID', 'Child_First_Name', 'Child_Last_Name'], keep=False)].copy()
-            
             if not duplicate_rows.empty:
                 duplicate_rows.to_excel('duplicate_names.xlsx', index=False)
                 self.duplicate_data = duplicate_rows
@@ -108,37 +115,17 @@ class DataModel:
                 self.duplicate_data = pd.DataFrame()
 
             # Identify unmatched records
-            unmatched_db = db_df[~db_df.apply(
-                lambda row: (
-                    (combined['Mother_First_Name'] == row['Mother_First_Name']) &
-                    (combined['Mother_Last_Name'] == row['Mother_Last_Name']) &
-                    (combined['Child_Date_of_Birth'] == row['Child_Date_of_Birth'])
-                ).any(),
-                axis=1
-            )].copy()
+            matched_keys = set(combined['Match_Key'])
+            unmatched_db = db_df[~db_df['Match_Key'].isin(matched_keys)].copy()
             unmatched_db['Source'] = 'Database'
-
-            unmatched_med = med_df[~med_df.apply(
-                lambda row: (
-                    (combined['Mother_First_Name'] == row['Mother_First_Name']) &
-                    (combined['Mother_Last_Name'] == row['Mother_Last_Name']) &
-                    (combined['Child_Date_of_Birth'] == row['Child_Date_of_Birth'])
-                ).any(),
-                axis=1
-            )].copy()
+            unmatched_med = med_df[~med_df['Match_Key'].isin(matched_keys)].copy()
             unmatched_med['Source'] = 'Medicaid'
 
             if not unmatched_db.empty or not unmatched_med.empty:
-                combined_cols = list(combined.columns)
-                unmatched_db = unmatched_db.reindex(columns=combined_cols + ['Source'], fill_value='')
-                unmatched_med = unmatched_med.reindex(columns=combined_cols + ['Source'], fill_value='')
                 unmatched = pd.concat([unmatched_db, unmatched_med], ignore_index=True)
-
-                # Capitalize unmatched columns
                 for col in ['Mother_First_Name', 'Mother_Last_Name', 'Child_First_Name', 'Child_Last_Name']:
                     if col in unmatched.columns:
                         unmatched[col] = unmatched[col].str.capitalize()
-
                 unmatched.to_excel('unmatched_data.xlsx', index=False)
                 self.unmatched_data = unmatched
             else:
@@ -149,12 +136,21 @@ class DataModel:
                 if col in combined.columns:
                     combined[col] = combined[col].astype(str).str.capitalize()
 
-             # Check and set 'Assigned_Nurse' column to None if it has no value
+            # Ensure Assigned_Nurse exists and is filled
             if 'Assigned_Nurse' in combined.columns:
                 combined['Assigned_Nurse'] = combined['Assigned_Nurse'].fillna('None')
+            else:
+                combined['Assigned_Nurse'] = 'None'
 
+            combined.drop(columns=['Match_Key'], inplace=True, errors='ignore')
             combined.to_excel('combined_matched_data.xlsx', index=False)
             self.combined_data = combined
+        
+            end_time = time.time()
+            elapsed = end_time - start_time
+
+            print(elapsed)
+
             return True
 
         except Exception as e:
