@@ -31,7 +31,7 @@ class ProfileView:
 
         # Info Frame
         info_frame = tk.Frame(frame, padx=10, pady=10)
-        info_frame.grid(row=0, column=0, sticky='nsew', padx=(0, 10), pady=(0, 10))
+        info_frame.grid(row=0, column=0, rowspan=2, sticky='nsew', padx=(0, 10), pady=(0, 10))
 
         # Mother's Info
         tk.Label(info_frame, text="Mother's Information", font=("Arial",14,"bold")).pack(anchor='w', pady=(10,0))
@@ -104,6 +104,7 @@ class ProfileView:
         frame.grid_columnconfigure(0, weight=1)
         frame.grid_columnconfigure(1, weight=1)
         frame.grid_rowconfigure(0, weight=1)
+        frame.grid_rowconfigure(1, weight=0)
 
         return self.view
 
