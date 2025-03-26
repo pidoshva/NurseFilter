@@ -4,6 +4,7 @@ import pandas as pd
 from tkinter import messagebox
 from app_crypto import Crypto
 import time
+import polars as pl
 
 class DataModel:
     """
@@ -73,91 +74,65 @@ class DataModel:
         if len(self.data_frames) < 2:
             messagebox.showerror("Error", "Please load two Excel files before combining data.")
             return False
+
         try:
-            db_df = self.data_frames[0].copy()
-            med_df = self.data_frames[1].copy()
+            # Convert pandas to Polars
+            db_df = pl.from_pandas(self.data_frames[0].copy())
+            med_df = pl.from_pandas(self.data_frames[1].copy())
 
             # Rename columns if needed
-            if 'DOB' in db_df.columns:
-                db_df.rename(columns={'DOB': 'Child_Date_of_Birth'}, inplace=True)
-            if 'Child_DOB' in med_df.columns:
-                med_df.rename(columns={'Child_DOB': 'Child_Date_of_Birth'}, inplace=True)
-            if 'Last_Name' in med_df.columns:
-                med_df.rename(columns={'Last_Name': 'Mother_Last_Name'}, inplace=True)
+            if "DOB" in db_df.columns:
+                db_df = db_df.rename({"DOB": "Child_Date_of_Birth"})
+            if "Child_DOB" in med_df.columns:
+                med_df = med_df.rename({"Child_DOB": "Child_Date_of_Birth"})
+            if "Last_Name" in med_df.columns:
+                med_df = med_df.rename({"Last_Name": "Mother_Last_Name"})
 
-            # Normalize mother names and create key
-            for df in [db_df, med_df]:
-                for col in ['Mother_First_Name', 'Mother_Last_Name']:
-                    if col in df.columns:
-                        df[col] = df[col].astype(str).str.lower().str.replace(r'\W', '', regex=True)
-                df['Child_Date_of_Birth'] = pd.to_datetime(df['Child_Date_of_Birth'], errors='coerce').dt.strftime('%Y-%m-%d')
-                df['Match_Key'] = (
-                    df['Mother_First_Name'] + '_' +
-                    df['Mother_Last_Name'] + '_' +
-                    df['Child_Date_of_Birth']
-                )
+            # Normalize names and build match key
+            for df_name, df in [("db", db_df), ("med", med_df)]:
+                df = df.with_columns([
+                    pl.col("Mother_First_Name").cast(pl.Utf8).str.to_lowercase().str.replace_all(r"\W", ""),
+                    pl.col("Mother_Last_Name").cast(pl.Utf8).str.to_lowercase().str.replace_all(r"\W", ""),
+                    pl.col("Child_Date_of_Birth").str.strip_chars().str.strptime(pl.Date, "%Y-%m-%d", strict=False).cast(pl.Utf8)
+                ])
+                df = df.with_columns([
+                    (pl.col("Mother_First_Name") + "_" + pl.col("Mother_Last_Name") + "_" + pl.col("Child_Date_of_Birth")).alias("Match_Key")
+                ])
+                if df_name == "db":
+                    db_df = df
+                else:
+                    med_df = df
 
-            # Merge on optimized hash key
-            combined = pd.merge(db_df, med_df, on='Match_Key', how='inner', suffixes=('_db', '_medicaid'))
+            # Merge
+            combined = db_df.join(med_df, on="Match_Key", how="inner", suffix="_medicaid")
 
-            # Restore key columns after merge
-            for col in ['Mother_First_Name', 'Mother_Last_Name', 'Child_Date_of_Birth']:
-                if col + '_db' in combined.columns:
-                    combined[col] = combined[col + '_db']
-                    combined.drop([col + '_db', col + '_medicaid'], axis=1, errors='ignore', inplace=True)
+            # Restore primary columns (from db_df)
+            for col in ["Mother_First_Name", "Mother_Last_Name", "Child_Date_of_Birth"]:
+                if f"{col}_medicaid" in combined.columns and f"{col}" in combined.columns:
+                    combined = combined.drop(f"{col}_medicaid")
 
-            # Identify duplicates in the combined dataset
-            duplicate_rows = combined[combined.duplicated(subset=['Mother_ID', 'Child_First_Name', 'Child_Last_Name'], keep=False)].copy()
-            if not duplicate_rows.empty:
-                duplicate_rows.to_excel('duplicate_names.xlsx', index=False)
-                self.duplicate_data = duplicate_rows
-            else:
-                self.duplicate_data = pd.DataFrame()
+            # Add missing Assigned_Nurse
+            if "Assigned_Nurse" not in combined.columns:
+                combined = combined.with_columns(pl.lit("None").alias("Assigned_Nurse"))
 
-            # Identify unmatched records
-            matched_keys = set(combined['Match_Key'])
-            unmatched_db = db_df[~db_df['Match_Key'].isin(matched_keys)].copy()
-            unmatched_db['Source'] = 'Database'
-            unmatched_med = med_df[~med_df['Match_Key'].isin(matched_keys)].copy()
-            unmatched_med['Source'] = 'Medicaid'
-
-            if not unmatched_db.empty or not unmatched_med.empty:
-                unmatched = pd.concat([unmatched_db, unmatched_med], ignore_index=True)
-                for col in ['Mother_First_Name', 'Mother_Last_Name', 'Child_First_Name', 'Child_Last_Name']:
-                    if col in unmatched.columns:
-                        unmatched[col] = unmatched[col].str.capitalize()
-                unmatched.to_excel('unmatched_data.xlsx', index=False)
-                self.unmatched_data = unmatched
-            else:
-                self.unmatched_data = pd.DataFrame()
-
-            # Capitalize combined columns
-            for col in ['Mother_First_Name', 'Mother_Last_Name', 'Child_First_Name', 'Child_Last_Name']:
+            # Capitalize relevant fields
+            for col in ["Mother_First_Name", "Mother_Last_Name", "Child_First_Name", "Child_Last_Name"]:
                 if col in combined.columns:
-                    combined[col] = combined[col].astype(str).str.capitalize()
+                    combined = combined.with_columns(pl.col(col).str.to_titlecase())
 
-            # Ensure Assigned_Nurse exists and is filled
-            if 'Assigned_Nurse' in combined.columns:
-                combined['Assigned_Nurse'] = combined['Assigned_Nurse'].fillna('None')
-            else:
-                combined['Assigned_Nurse'] = 'None'
 
-            combined.drop(columns=['Match_Key'], inplace=True, errors='ignore')
-            combined.to_excel('combined_matched_data.xlsx', index=False)
-            self.combined_data = combined
-        
             end_time = time.time()
+
             elapsed = end_time - start_time
 
-            print(elapsed)
+            print (elapsed)
 
             return True
 
         except Exception as e:
-            logging.error(f"Error combining data: {e}")
+            logging.error(f"Error combining data with Polars: {e}")
             messagebox.showerror("Error", f"Error combining data: {e}")
             return False
-
 
     def load_combined_data(self):
         path = 'combined_matched_data.xlsx'
