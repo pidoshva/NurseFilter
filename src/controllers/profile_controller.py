@@ -9,6 +9,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 import pandas as pd
 from datetime import datetime
+from PIL import Image, ImageTk
 
 class ProfileController:
     def __init__(self, root, child_data, model, main_controller, update_callback):
@@ -19,7 +20,34 @@ class ProfileController:
         self.update_callback = update_callback
         self.view = None
         self.visit_log_path = "nurse_log.xlsx"
+        self.load_icons()
         logging.info("ProfileController initialized.")
+
+    def load_icons(self):
+        """Load icons for message boxes"""
+        try:
+            # Try to find the icons in several possible locations
+            icon_paths = [
+                "src/assets/nursefilter_icon.png",
+                "assets/nursefilter_icon.png",
+                "nursefilter_icon.png",
+            ]
+            
+            for path in icon_paths:
+                if os.path.exists(path):
+                    # Load the nurse filter icon
+                    icon_image = Image.open(path)
+                    # Resize the image to fit messagebox
+                    icon_image = icon_image.resize((32, 32), Image.LANCZOS)
+                    self.message_icon = ImageTk.PhotoImage(icon_image)
+                    logging.info(f"Loaded message icon from {path}")
+                    break
+            else:
+                self.message_icon = None
+                logging.warning("Message icon not found - will use default")
+        except Exception as e:
+            logging.error(f"Error loading message icon: {e}")
+            self.message_icon = None
 
     def show_profile(self):
         self.view = ProfileView(self.root, self, self.child_data)
@@ -31,7 +59,7 @@ class ProfileController:
         logging.info("Assign Nurse button clicked.")
 
         def both_callback(new_name):
-            child_data['Assigned_Nurse'] = new_name # Update current profile’s nurse
+            child_data['Assigned_Nurse'] = new_name # Update current profile's nurse
             self.child_data['Assigned_Nurse'] = new_name # Also update in this controller
             update_callback(new_name)
             self.update_callback()  # Refresh combined data view
@@ -174,7 +202,6 @@ class ProfileController:
         # Refresh view
         if self.view:
             self.view.update_visit_log()
-
 
     def get_nurse_visits(self, child_data):
         if not os.path.exists(self.visit_log_path):
