@@ -1,15 +1,15 @@
 import tkinter as tk
+from tkinter import ttk, messagebox, simpledialog
 import pandas as pd
 from tkinter import font as tkfont
 from views.tooltip import add_tooltip
 from PIL import Image, ImageTk
 import os
 import platform
+from datetime import datetime
+
 
 class ProfileView:
-    """
-    View class for displaying a single child's profile.
-    """
     def __init__(self, root, controller, child_data):
         self.root = root
         self.controller = controller
@@ -95,7 +95,7 @@ class ProfileView:
 
     def get_frame(self):
         return self.view
-    
+
     def get_title(self):
         first = self.child_data.get('Child_First_Name','')
         last = self.child_data.get('Child_Last_Name','')
@@ -233,9 +233,9 @@ class ProfileView:
         
         dob = self.child_data.get('Child_Date_of_Birth','')
         self.child_info_text = (
-            f"First Name: {first}\n"
-            f"Last Name: {last}\n"
-            f"Date of Birth: {dob}\n"
+            f"First Name: {self.child_data.get('Child_First_Name','')}\n"
+            f"Last Name: {self.child_data.get('Child_Last_Name','')}\n"
+            f"Date of Birth: {self.child_data.get('Child_Date_of_Birth','')}\n"
         )
         child_info = tk.Label(
             child_section, 
@@ -278,11 +278,11 @@ class ProfileView:
 
             self.address_info_text = (
                 f"Street: {street}\n"
-                f"City: {city}\n"
-                f"State: {state}\n"
-                f"ZIP: {zip_}\n"
-                f"Phone #: {phone}\n"
-                f"Mobile #: {mobile}\n"
+                f"City: {self.child_data.get('City','')}\n"
+                f"State: {self.child_data.get('State','')}\n"
+                f"ZIP: {self.child_data.get('ZIP','')}\n"
+                f"Phone #: {self.child_data.get('Phone_#','')}\n"
+                f"Mobile #: {self.child_data.get('Mobile_#','')}\n"
             )
             address_info = tk.Label(
                 address_section, 
@@ -410,11 +410,13 @@ class ProfileView:
     def assign_nurse(self):
         self.controller.assign_nurse(self.child_data, self.update_nurse_info)
 
-    def update_nurse_info(self, text):
-        self.nurse_info_text = text
+    def update_nurse_info(self, nurse_name):
+        if nurse_name.startswith("Name: "):
+            nurse_name = nurse_name.replace("Name: ", "", 1)
+        self.child_data['Assigned_Nurse'] = nurse_name
+        self.nurse_info_text = f"Name: {nurse_name}"
         self.nurse_label.config(text=self.nurse_info_text)
 
-    # The controller calls these getters to build PDF or do copy/paste
     def get_mother_info_text(self):
         return self.mother_info_text
 
@@ -426,3 +428,92 @@ class ProfileView:
 
     def get_nurse_info_text(self):
         return self.nurse_info_text
+
+    def update_visit_log(self):
+        path = "nurse_log.xlsx"
+        if not os.path.exists(path):
+            return
+        df = pd.read_excel(path)
+        mother_id = str(self.child_data.get("Mother_ID", ""))
+        first = self.child_data.get("Child_First_Name", "").lower()
+        last = self.child_data.get("Child_Last_Name", "").lower()
+        filtered = df[
+            (df["Mother_ID"].astype(str) == mother_id) &
+            (df["Child_First_Name"].str.lower() == first) &
+            (df["Child_Last_Name"].str.lower() == last)
+        ]
+        for row in self.visit_tree.get_children():
+            self.visit_tree.delete(row)
+        for _, row in filtered.iterrows():
+            self.visit_tree.insert("", "end", values=(row["Nurse_Name"], row["Visit_Time"]))
+
+    def auto_log_visit(self):
+        nurse_name = self.child_data.get("Assigned_Nurse")
+        if pd.isna(nurse_name) or not nurse_name or nurse_name.lower() in ["none", "n/a", "nan"]:
+            messagebox.showerror("Error", "Please assign a nurse before logging a visit.")
+            return
+        visit_time = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.save_nurse_log(nurse_name, visit_time)
+        self.update_visit_log()
+        messagebox.showinfo("Success", f"Visit logged for nurse {nurse_name}.")
+
+    def manual_log_visit(self):
+        nurse_name = simpledialog.askstring("Manual Log", "Enter Nurse Name:")
+        if not nurse_name:
+            return
+        time_str = simpledialog.askstring("Manual Log", "Enter Visit Time (YYYY-MM-DD HH:MM:SS):")
+        try:
+            datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            messagebox.showerror("Error", "Invalid time format.")
+            return
+        self.save_nurse_log(nurse_name.strip(), time_str)
+        self.update_visit_log()
+        messagebox.showinfo("Success", f"Visit logged for nurse {nurse_name}.")
+
+    def save_nurse_log(self, nurse_name, visit_time):
+        file = "nurse_log.xlsx"
+        if os.path.exists(file):
+            df = pd.read_excel(file)
+        else:
+            df = pd.DataFrame(columns=["Visit_ID", "Mother_ID", "Child_First_Name", "Child_Last_Name", "Nurse_Name", "Visit_Time"])
+        visit_id = len(df) + 1
+        new_row = {
+            "Visit_ID": visit_id,
+            "Mother_ID": self.child_data.get("Mother_ID", "N/A"),
+            "Child_First_Name": self.child_data.get("Child_First_Name", "N/A"),
+            "Child_Last_Name": self.child_data.get("Child_Last_Name", "N/A"),
+            "Nurse_Name": nurse_name,
+            "Visit_Time": visit_time
+        }
+        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+        df.to_excel(file, index=False)
+
+    def delete_selected_visit(self):
+        selected = self.visit_tree.selection()
+        if not selected:
+            messagebox.showwarning("No selection", "Please select a visit log to delete.")
+            return
+        nurse_name, visit_time = self.visit_tree.item(selected[0])['values']
+        confirm = messagebox.askyesno("Confirm Deletion", f"Delete visit by {nurse_name} on {visit_time}?")
+        if not confirm:
+            return
+        path = "nurse_log.xlsx"
+        if not os.path.exists(path):
+            messagebox.showerror("Error", "Log file not found.")
+            return
+        df = pd.read_excel(path)
+        match_mask = (
+            (df["Mother_ID"].astype(str) == str(self.child_data.get("Mother_ID", ""))) &
+            (df["Child_First_Name"].str.lower() == self.child_data.get("Child_First_Name", "").lower()) &
+            (df["Child_Last_Name"].str.lower() == self.child_data.get("Child_Last_Name", "").lower()) &
+            (df["Nurse_Name"] == nurse_name) &
+            (df["Visit_Time"] == visit_time)
+        )
+        if not match_mask.any():
+            messagebox.showerror("Error", "No matching record found in file.")
+            return
+        df = df[~match_mask]
+        df.to_excel(path, index=False)
+        self.update_visit_log()
+        messagebox.showinfo("Deleted", "Visit log deleted successfully.")
