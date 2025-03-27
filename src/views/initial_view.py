@@ -44,7 +44,7 @@ class InitialView(ttk.Frame):
         title_frame.pack(fill=tk.X, pady=(0, 25))
         
         # Diamond icon as a visual element
-        title_icon = ttk.Label(title_frame, text="◆", font=("Arial", 20), foreground="#4a86e8")
+        title_icon = ttk.Label(title_frame, text="◆", font=("Arial", 20), foreground="#ff3b30")
         title_icon.pack(side=tk.LEFT, padx=(0, 10))
         
         title_label = ttk.Label(title_frame, text="Data Loading Center", font=("Arial", 18, "bold"))
