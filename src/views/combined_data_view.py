@@ -31,10 +31,22 @@ class CombinedDataView:
         top_frame = tk.Frame(self.combined_window)
         top_frame.pack(fill=tk.X, padx=5, pady=5)
 
+        # Create a frame for the search bar and clear button
+        search_frame = tk.Frame(top_frame)
+        search_frame.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
+
         self.search_var = tk.StringVar()
         search_entry = tk.Entry(top_frame, textvariable=self.search_var)
         search_entry.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
         add_tooltip(search_entry, "Search by name, ID, date of birth, or nurse name")
+        search_entry = tk.Entry(search_frame, textvariable=self.search_var)
+        search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        # Add binding to search when Enter key is pressed
+        search_entry.bind('<Return>', lambda event: self.search_data())
+
+        # Add clear button (X) within the search bar area
+        clear_button = tk.Button(search_frame, text="✕", command=self.clear_search, width=2)
+        clear_button.pack(side=tk.LEFT)
 
         search_button = tk.Button(top_frame, text="Search", command=self.search_data)
         search_button.pack(side=tk.LEFT, padx=5)
@@ -55,7 +67,7 @@ class CombinedDataView:
         add_tooltip(nurse_stats_button, "View statistics about nurse assignments and caseloads")
 
         # Treeview
-        columns = ("Mother_ID", "First_Name", "Last_Name", "Date_of_Birth", "Assigned_Nurse")
+        columns = ("Mother_ID", "First_Name", "Last_Name", "Date_of_Birth","City_db","Zip","Phone_#","Street_address", "Assigned_Nurse")
         self.treeview = ttk.Treeview(self.combined_window, columns=columns, show='headings')
         add_tooltip(self.treeview, "Double-click on a record to view or edit a child's detailed profile")
 
@@ -65,7 +77,12 @@ class CombinedDataView:
             "First_Name": "First Name",
             "Last_Name": "Last Name", 
             "Date_of_Birth": "Date of Birth",
+            "City_db":"City_db",
+            "Zip":"Zip",
+            "Phone_#":"Phone_#",
+            "Street_address":"Street_address",
             "Assigned_Nurse": "Assigned Nurse"
+
         }
         
         for col in columns:
@@ -140,6 +157,11 @@ class CombinedDataView:
                 row.get('Child_First_Name', ''),
                 row.get('Child_Last_Name', ''),
                 row.get('Child_Date_of_Birth', ''),
+                row.get('City_db',''),
+                row.get('Zip',''),
+                row.get('Phone_#',''),
+                row.get('Street_address',''),
+
                 row.get('Assigned_Nurse', 'None')  # Ensure 'None' is displayed if no nurse
             ]
             self.treeview.insert('', 'end', values=values)
@@ -160,7 +182,7 @@ class CombinedDataView:
             try:
                 vals = self.treeview.item(selection[0])['values']
                 # Update unpacking to match actual columns (Mother_ID, First, Last, DOB, Nurse)
-                mother_id, child_first_name, child_last_name, dob, nurse = vals
+                mother_id, child_first_name, child_last_name, dob, City, Zip,Phone,Street, nurse = vals
                 
                 # Locate the child's data in the combined DataFrame
                 child_data = self.controller.model.combined_data[
@@ -215,4 +237,10 @@ class CombinedDataView:
         df.drop(columns=['dob_temp'], inplace=True)
 
         self.filtered_data = df
+        self.update_treeview(self.filtered_data)
+
+    # Add a new method to clear the search
+    def clear_search(self):
+        self.search_var.set("")
+        self.filtered_data = self.combined_data.copy()
         self.update_treeview(self.filtered_data)

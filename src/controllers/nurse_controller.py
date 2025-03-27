@@ -6,6 +6,7 @@ from views.statistical_view import StatisticalView
 from views.nurse_statistics_view import NursesStatisticalView
 from views.batch_assign_view import BatchAssignView
 from views.assign_nurse_view import AssignNurseView
+import os
 
 class NurseController:
     def __init__(self, root, model: DataModel, main_controller):
@@ -45,9 +46,12 @@ class NurseController:
             from reportlab.pdfgen import canvas
             from tkinter import filedialog
 
-            pdf_path = filedialog.asksaveasfilename(defaultextension=".pdf",
-                                                    filetypes=[("PDF Files", "*.pdf")],
-                                                    title="Save Report As")
+            pdf_path = filedialog.asksaveasfilename(
+                initialdir=os.getcwd(),
+                defaultextension=".pdf",
+                filetypes=[("PDF Files", "*.pdf")],
+                title="Save Report As"
+            )
             if not pdf_path:
                 return
 

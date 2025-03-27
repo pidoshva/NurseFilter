@@ -1,5 +1,6 @@
 from tkinter import ttk
 import tkinter as tk
+import logging
 
 
 class TabsView:
@@ -25,6 +26,19 @@ class TabsView:
 
     def remove_tab(self, tab_view):
         """Remove a tab from the Notebook."""
-        self.notebook.forget(tab_view)
-        tab_view.destroy()
-        self.tab_count -= 1
+        try:
+            # Check if the tab is actually in the notebook
+            if tab_view in self.notebook.winfo_children():
+                self.notebook.forget(tab_view)
+                tab_view.destroy()
+                self.tab_count -= 1
+            else:
+                logging.warning(f"Tab not found in notebook when attempting to remove")
+        except Exception as e:
+            logging.warning(f"Error removing tab: {e}")
+            # Still try to destroy the widget if possible
+            try:
+                if tab_view and tab_view.winfo_exists():
+                    tab_view.destroy()
+            except:
+                pass
