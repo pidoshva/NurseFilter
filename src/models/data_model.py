@@ -71,6 +71,7 @@ class DataModel:
 
     def combine_data(self):
         start_time = time.time()
+
         if len(self.data_frames) < 2:
             messagebox.showerror("Error", "Please load two Excel files before combining data.")
             return False
@@ -88,12 +89,12 @@ class DataModel:
             if "Last_Name" in med_df.columns:
                 med_df = med_df.rename({"Last_Name": "Mother_Last_Name"})
 
-            # Normalize names and build match key
+            # Normalize names and build Match_Key
             for df_name, df in [("db", db_df), ("med", med_df)]:
                 df = df.with_columns([
                     pl.col("Mother_First_Name").cast(pl.Utf8).str.to_lowercase().str.replace_all(r"\W", ""),
                     pl.col("Mother_Last_Name").cast(pl.Utf8).str.to_lowercase().str.replace_all(r"\W", ""),
-                    pl.col("Child_Date_of_Birth").str.strip_chars().str.strptime(pl.Date, "%Y-%m-%d", strict=False).cast(pl.Utf8)
+                    pl.col("Child_Date_of_Birth").cast(pl.Utf8).str.strip_chars().str.strptime(pl.Date, "%Y-%m-%d", strict=False).cast(pl.Utf8)
                 ])
                 df = df.with_columns([
                     (pl.col("Mother_First_Name") + "_" + pl.col("Mother_Last_Name") + "_" + pl.col("Child_Date_of_Birth")).alias("Match_Key")
@@ -103,29 +104,33 @@ class DataModel:
                 else:
                     med_df = df
 
-            # Merge
+            # Merge on Match_Key
             combined = db_df.join(med_df, on="Match_Key", how="inner", suffix="_medicaid")
 
-            # Restore primary columns (from db_df)
+            # Drop duplicate columns and restore originals
             for col in ["Mother_First_Name", "Mother_Last_Name", "Child_Date_of_Birth"]:
-                if f"{col}_medicaid" in combined.columns and f"{col}" in combined.columns:
+                if f"{col}_medicaid" in combined.columns:
                     combined = combined.drop(f"{col}_medicaid")
 
-            # Add missing Assigned_Nurse
+            # Add Assigned_Nurse if missing
             if "Assigned_Nurse" not in combined.columns:
                 combined = combined.with_columns(pl.lit("None").alias("Assigned_Nurse"))
 
-            # Capitalize relevant fields
+            # Capitalize names
             for col in ["Mother_First_Name", "Mother_Last_Name", "Child_First_Name", "Child_Last_Name"]:
                 if col in combined.columns:
                     combined = combined.with_columns(pl.col(col).str.to_titlecase())
 
+            # Drop match key before saving
+            combined = combined.drop("Match_Key")
 
-            end_time = time.time()
+            # Convert to pandas and save
+            combined_df = combined.to_pandas()
+            combined_df.to_excel("combined_matched_data.xlsx", index=False)
+            self.combined_data = combined_df
 
-            elapsed = end_time - start_time
-
-            print (elapsed)
+            elapsed = time.time() - start_time
+            print(f"Polars combine_data execution time: {elapsed:.4f} seconds")
 
             return True
 
