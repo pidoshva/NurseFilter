@@ -376,7 +376,7 @@ class ProfileView:
         button_row.pack(fill=tk.X)
         
         # Assign Nurse button (primary action)
-        assign_btn = create_button(button_row, "Assign Nurse", self.assign_nurse, is_primary=True)
+        assign_btn = create_button(button_row, "Assign Nurse", self.assign_nurse)
         assign_btn.pack(side=tk.LEFT, padx=5)
         add_tooltip(assign_btn, "Assign or change the nurse responsible for this child")
         

@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 import logging
 from tkinter import font as tkfont
 from PIL import Image, ImageTk
@@ -16,6 +17,7 @@ class LoginView:
         # Create the main view frame
         self.view = tk.Frame(root, bg="#ffffff")
         self.controller = controller
+        self.style = ttk.Style()
         self.style_config()
         self.load_assets()
         logging.info("LoginView initialized.")
@@ -73,6 +75,22 @@ class LoginView:
         # Hover colors
         self.button_hover_color = "#c52b21"  # Darker red for hover
         self.link_hover_color = "#0071bc"    # Medical blue for links
+
+        # Configure ttk styles
+        self.style.configure(
+            "Login.TButton",
+            background=self.accent_color,
+            foreground="white",
+            font=self.button_font,
+            padding=(10, 10),
+            borderwidth=0
+        )
+        
+        self.style.map(
+            "Login.TButton",
+            background=[("active", self.button_hover_color)],
+            foreground=[("active", "white")]
+        )
 
     def login_button(self):
         username = self.entry_username.get()
@@ -230,27 +248,53 @@ class LoginView:
         self.entry_password.bind("<FocusIn>", lambda event: self._on_focus_in(event, self.entry_password))
         self.entry_password.bind("<FocusOut>", lambda event: self._on_focus_out(event, self.entry_password))
         
-        # Login button - use accent red color from the medical cross
-        login_button = tk.Button(
-            form_container, 
-            text="LOGIN", 
-            command=self.login_button,
-            bg=self.accent_color,
-            fg="white",
-            font=self.button_font,
-            padx=10,
-            pady=10,
-            relief=tk.FLAT,
-            borderwidth=0,
-            activebackground=self.button_hover_color,
-            activeforeground="white",
-            cursor="hand2"
+        # Create a canvas for the login button
+        button_canvas = tk.Canvas(
+            form_container,
+            height=45,
+            bg=self.light_gray,
+            highlightthickness=0
         )
-        login_button.pack(fill=tk.X, padx=30, pady=(25, 15))
+        button_canvas.pack(fill=tk.X, padx=30, pady=(25, 15))
         
-        # Add hover effect
-        login_button.bind("<Enter>", lambda event: self._on_enter_button(event, login_button, self.accent_color, self.button_hover_color))
-        login_button.bind("<Leave>", lambda event: self._on_leave_button(event, login_button, self.accent_color))
+        # Create button shape
+        button_canvas.create_rectangle(
+            0, 0, 
+            button_canvas.winfo_reqwidth(), 45,
+            fill=self.accent_color,
+            outline=self.accent_color,
+            tags=("button_bg",)
+        )
+        
+        # Add button text
+        button_canvas.create_text(
+            button_canvas.winfo_reqwidth()/2, 22,
+            text="LOGIN",
+            fill="white",
+            font=self.button_font,
+            tags=("button_text",)
+        )
+        
+        # Handle button click
+        def on_click(event):
+            self.login_button()
+            
+        def on_enter(event):
+            button_canvas.itemconfig("button_bg", fill=self.button_hover_color, outline=self.button_hover_color)
+            
+        def on_leave(event):
+            button_canvas.itemconfig("button_bg", fill=self.accent_color, outline=self.accent_color)
+            
+        # Update button size when canvas is resized
+        def on_resize(event):
+            button_canvas.coords("button_bg", 0, 0, event.width, 45)
+            button_canvas.coords("button_text", event.width/2, 22)
+            
+        button_canvas.bind("<Configure>", on_resize)
+        button_canvas.bind("<Button-1>", on_click)
+        button_canvas.bind("<Enter>", on_enter)
+        button_canvas.bind("<Leave>", on_leave)
+        button_canvas.config(cursor="hand2")
         
         # Forgot password link - medical blue for links
         forgot_link = tk.Label(

@@ -13,7 +13,7 @@ class Tooltip:
         padding: Padding around the tooltip text (default: 5 pixels)
     """
     def __init__(self, widget, text, delay=500, wrap_length=250,
-                 background="#FFFFDD", padding=5):
+                 background="#2c3e50", padding=5):
         self.widget = widget
         self.text = text
         self.delay = delay
@@ -58,7 +58,8 @@ class Tooltip:
         # Create tooltip content
         label = tk.Label(tw, text=self.text, justify=tk.LEFT,
                          background=self.background, relief="solid", borderwidth=1,
-                         wraplength=self.wrap_length, padx=self.padding, pady=self.padding)
+                         wraplength=self.wrap_length, padx=self.padding, pady=self.padding,
+                         fg="white")
         label.pack()
     
     def hide_tooltip(self):
