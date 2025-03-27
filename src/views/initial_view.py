@@ -70,6 +70,12 @@ class InitialView(ttk.Frame):
                                font=("Arial", 14, "bold"), foreground="#4a86e8")
         status_label.pack(side=tk.LEFT)
         
+        # Add clear button next to file counter
+        clear_files_btn = ttk.Button(counter_frame, text="✕", width=3, 
+                                   command=self.clear_loaded_files)
+        clear_files_btn.pack(side=tk.LEFT, padx=(5, 0))
+        add_tooltip(clear_files_btn, "Clear all loaded files and start over")
+        
         # Progress indicators
         indicator_frame = ttk.Frame(status_frame)
         indicator_frame.pack(fill=tk.X, pady=(10, 0))
@@ -143,13 +149,30 @@ class InitialView(ttk.Frame):
             self.files_loaded = len(self.controller.model.data_frames)
             self.file_status.set(f"{self.files_loaded}/2")
             
-            # Update indicators
-            if self.files_loaded >= 1:
-                self.db_indicator.config(text="●", foreground="#4CAF50")  # Green filled circle
+            # Update indicators based on file types
+            if hasattr(self.controller.model, 'file_types'):
+                # Reset indicators
+                self.db_indicator.config(text="○", foreground="#cccccc")
+                self.med_indicator.config(text="○", foreground="#cccccc")
                 
-            if self.files_loaded >= 2:
-                self.med_indicator.config(text="●", foreground="#4CAF50")  # Green filled circle
-                self.combine_btn.config(state="normal")
+                # Mark appropriate indicators based on loaded file types
+                for file_type in self.controller.model.file_types:
+                    if file_type == "Database":
+                        self.db_indicator.config(text="●", foreground="#4CAF50")  # Green filled circle
+                    elif file_type == "Medicaid":
+                        self.med_indicator.config(text="●", foreground="#4CAF50")  # Green filled circle
+                
+                # Enable combine button if both types loaded
+                if "Database" in self.controller.model.file_types and "Medicaid" in self.controller.model.file_types:
+                    self.combine_btn.config(state="normal")
+            # Fallback to old behavior if file_types not available
+            else:
+                if self.files_loaded >= 1:
+                    self.db_indicator.config(text="●", foreground="#4CAF50")  # Green filled circle
+                    
+                if self.files_loaded >= 2:
+                    self.med_indicator.config(text="●", foreground="#4CAF50")  # Green filled circle
+                    self.combine_btn.config(state="normal")
         
     def combine_data(self):
         """Handle the combine data button click."""
@@ -158,4 +181,20 @@ class InitialView(ttk.Frame):
     def load_existing_file(self):
         """Handle the load existing file button click."""
         self.controller.load_existing_combined_data()
+
+    def clear_loaded_files(self):
+        """Clear all loaded files and reset indicators."""
+        # Ask the controller to clear data frames
+        self.controller.clear_loaded_files()
+        
+        # Reset UI elements
+        self.files_loaded = 0
+        self.file_status.set("0/2")
+        
+        # Reset indicators
+        self.db_indicator.config(text="○", foreground="#cccccc")
+        self.med_indicator.config(text="○", foreground="#cccccc")
+        
+        # Disable combine button
+        self.combine_btn.config(state="disabled")
 

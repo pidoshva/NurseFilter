@@ -29,16 +29,33 @@ class InitialController:
     def read_excel_file(self):
         logging.info("Selecting Excel file...")
         
-        # Determine which file we're loading (1st or 2nd)
-        file_num = len(self.model.data_frames) + 1
-        file_type = "Database" if file_num == 1 else "Medicaid"
-        
         filepath = filedialog.askopenfilename(
             initialdir=os.getcwd(),
             filetypes=[("Excel files", "*.xlsx *.xls")]
         )
         if not filepath:
             return None
+            
+        # Determine file type based on filename
+        filename = os.path.basename(filepath).lower()
+        
+        # Check if filename contains medicaid or database
+        is_medicaid = 'medicaid' in filename
+        is_database = 'database' in filename
+        
+        # If neither is in the name, follow default order
+        if not is_medicaid and not is_database:
+            # Default assignment based on current loaded files
+            if not self.model.data_frames or 'database' in self.model.data_frames:
+                file_type = "Database"
+            else:
+                file_type = "Medicaid"
+        else:
+            # Explicit type based on filename
+            file_type = "Medicaid" if is_medicaid else "Database"
+        
+        # Check which position this file is (1st or 2nd)
+        file_num = len(self.model.data_frames) + 1
             
         # Define an operation that reports progress
         def file_loading_operation(progress_callback):
@@ -53,7 +70,7 @@ class InitialController:
                     
             # Read the file
             progress_callback(f"Reading {file_type} data", 50)
-            result = self.model.read_excel_file(filepath)
+            result = self.model.read_excel_file(filepath, file_type=file_type)
             
             # Re-encrypt
             try:
@@ -159,3 +176,14 @@ class InitialController:
             "Loading Combined Data File"
         )
         return result
+        
+    def clear_loaded_files(self):
+        """Clear all loaded data frames from the model."""
+        # Reset data frames and file types
+        if hasattr(self.model, 'data_frames'):
+            self.model.data_frames = []
+        
+        if hasattr(self.model, 'file_types'):
+            self.model.file_types = []
+            
+        logging.info("Cleared all loaded files from the model")

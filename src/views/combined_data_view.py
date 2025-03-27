@@ -35,22 +35,23 @@ class CombinedDataView:
         search_frame = tk.Frame(top_frame)
         search_frame.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
 
-        # Create a frame for the search bar and clear button
-        search_frame = tk.Frame(top_frame)
-        search_frame.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
+        # Search components container
+        search_components = tk.Frame(search_frame)
+        search_components.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
         self.search_var = tk.StringVar()
-        search_entry = tk.Entry(search_frame, textvariable=self.search_var)
+        search_entry = tk.Entry(search_components, textvariable=self.search_var, width=40)
         search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
         # Add binding to search when Enter key is pressed
         search_entry.bind('<Return>', lambda event: self.search_data())
 
         # Add clear button (X) within the search bar area
-        clear_button = tk.Button(search_frame, text="✕", command=self.clear_search, width=2)
+        clear_button = tk.Button(search_components, text="✕", command=self.clear_search, width=2)
         clear_button.pack(side=tk.LEFT)
         add_tooltip(search_entry, "Search by name, ID, date of birth, or nurse name")
 
-        search_button = tk.Button(top_frame, text="Search", command=self.search_data)
+        # Move search button into the search frame
+        search_button = tk.Button(search_components, text="Search", command=self.search_data)
         search_button.pack(side=tk.LEFT, padx=5)
         add_tooltip(search_button, "Search for specific records based on your search terms")
 

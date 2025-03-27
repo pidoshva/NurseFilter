@@ -55,13 +55,14 @@ class DataModel:
             return False
 
     # Reading & Combining
-    def read_excel_file(self, filepath, progress_callback=None):
+    def read_excel_file(self, filepath, progress_callback=None, file_type=None):
         """
         Read an Excel file and store the data.
         
         Args:
             filepath: Path to the Excel file
             progress_callback: Optional callback for progress updates
+            file_type: Type of file being read ("Database" or "Medicaid")
             
         Returns:
             The pandas DataFrame if successful, None otherwise
@@ -104,14 +105,19 @@ class DataModel:
             # Process column names
             data.columns = [c.replace(" ", "_") for c in data.columns]
             
-            # Store the data frame
+            # Store the data frame along with its type
             self.data_frames.append(data)
+            
+            # Store file type information
+            if not hasattr(self, 'file_types'):
+                self.file_types = []
+            self.file_types.append(file_type or ("Database" if len(self.file_types) == 0 else "Medicaid"))
             
             # Final progress
             if progress_callback:
                 progress_callback("Completed", 100)
                 
-            logging.info(f"Data read from {filepath}")
+            logging.info(f"Data read from {filepath} as {self.file_types[-1]} file")
             return data
             
         except Exception as e:
