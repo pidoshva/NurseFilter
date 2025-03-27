@@ -3,6 +3,7 @@ from tkinter import ttk, messagebox, simpledialog
 import pandas as pd
 from datetime import datetime
 import os
+from views.tooltip import add_tooltip
 
 class ProfileView:
     def __init__(self, root, controller, child_data):
@@ -34,27 +35,47 @@ class ProfileView:
         info_frame.grid(row=0, column=0, rowspan=2, sticky='nsew', padx=(0, 10), pady=(0, 10))
 
         # Mother's Info
-        tk.Label(info_frame, text="Mother's Information", font=("Arial",14,"bold")).pack(anchor='w', pady=(10,0))
+        mother_header = tk.Label(frame, text="Mother's Information", font=("Arial",14,"bold"))
+        mother_header.pack(anchor='w', pady=(10,0))
+        add_tooltip(mother_header, "Information about the child's mother")
+        
         self.mother_info_text = (
             f"Mother ID: {self.child_data.get('Mother_ID','')}\n"
             f"First Name: {self.child_data.get('Mother_First_Name','')}\n"
             f"Last Name: {self.child_data.get('Mother_Last_Name','')}\n"
         )
-        tk.Label(info_frame, text=self.mother_info_text, anchor='w', justify=tk.LEFT, font=("Arial",12)).pack(anchor='w', pady=(5,10))
+        mother_info = tk.Label(frame, text=self.mother_info_text, anchor='w', justify=tk.LEFT, font=("Arial",12))
+        mother_info.pack(anchor='w', pady=(5,10))
+        add_tooltip(mother_info, "Unique identifier and name details of the mother")
 
-        # Child Info
-        tk.Label(info_frame, text="Child's Information", font=("Arial",14,"bold")).pack(anchor='w', pady=(10,0))
+        # Child's Info
+        child_header = tk.Label(frame, text="Child's Information", font=("Arial",14,"bold"))
+        child_header.pack(anchor='w', pady=(10,0))
+        add_tooltip(child_header, "Personal information about the child")
+        
+        dob = self.child_data.get('Child_Date_of_Birth','')
         self.child_info_text = (
             f"First Name: {self.child_data.get('Child_First_Name','')}\n"
             f"Last Name: {self.child_data.get('Child_Last_Name','')}\n"
             f"Date of Birth: {self.child_data.get('Child_Date_of_Birth','')}\n"
         )
-        tk.Label(info_frame, text=self.child_info_text, anchor='w', justify=tk.LEFT, font=("Arial",12)).pack(anchor='w', pady=(5,10))
+        child_info = tk.Label(frame, text=self.child_info_text, anchor='w', justify=tk.LEFT, font=("Arial",12))
+        child_info.pack(anchor='w', pady=(5,10))
+        add_tooltip(child_info, "Name and date of birth information for the child")
 
         # Address
         street = self.child_data.get('Street','')
         if pd.notnull(street) and street != '':
-            tk.Label(info_frame, text="Address & Contact Information", font=("Arial",14,"bold")).pack(anchor='w', pady=(10,0))
+            address_header = tk.Label(frame, text="Address & Contact Information", font=("Arial",14,"bold"))
+            address_header.pack(anchor='w', pady=(10,0))
+            add_tooltip(address_header, "Contact and address details for this family")
+            
+            city = self.child_data.get('City','')
+            state = self.child_data.get('State','')
+            zip_ = self.child_data.get('ZIP','')
+            phone = self.child_data.get('Phone_#','')
+            mobile = self.child_data.get('Mobile_#','')
+
             self.address_info_text = (
                 f"Street: {street}\n"
                 f"City: {self.child_data.get('City','')}\n"
@@ -63,16 +84,23 @@ class ProfileView:
                 f"Phone #: {self.child_data.get('Phone_#','')}\n"
                 f"Mobile #: {self.child_data.get('Mobile_#','')}\n"
             )
-            tk.Label(info_frame, text=self.address_info_text, anchor='w', justify=tk.LEFT, font=("Arial",12)).pack(anchor='w', pady=(5,10))
+            address_info = tk.Label(frame, text=self.address_info_text, anchor='w',
+                     justify=tk.LEFT, font=("Arial",12))
+            address_info.pack(anchor='w', pady=(5,10))
+            add_tooltip(address_info, "Full address and contact phone numbers")
 
-        # Nurse Info
-        tk.Label(info_frame, text="Assigned Nurse", font=("Arial",14,"bold")).pack(anchor='w', pady=(10,0))
+        # Assigned Nurse
+        nurse_header = tk.Label(frame, text="Assigned Nurse", font=("Arial",14,"bold"))
+        nurse_header.pack(anchor='w', pady=(10,0))
+        add_tooltip(nurse_header, "Nurse currently assigned to this child")
+        
         nurse = self.child_data.get('Assigned_Nurse','None')
         if pd.isna(nurse):
             nurse = "None"
         self.nurse_info_text = f"Name: {nurse}"
         self.nurse_label = tk.Label(info_frame, text=self.nurse_info_text, anchor='w', justify=tk.LEFT, font=("Arial",12))
         self.nurse_label.pack(anchor='w', pady=(5,10))
+        add_tooltip(self.nurse_label, "The currently assigned nurse for this child" if nurse != "None" else "No nurse has been assigned yet")
 
         # Visit Log
         log_frame = tk.Frame(frame, padx=10, pady=10)
