@@ -333,9 +333,47 @@ class ProfileView:
         self.nurse_label.pack(fill=tk.X, pady=(10, 15))
         add_tooltip(self.nurse_label, "The currently assigned nurse for this child" if nurse != "None" else "No nurse has been assigned yet")
 
+        # Nurse Visit Log Section
+        visit_log_section = self.create_section_frame(main_content)
+        row_pos += 1
+        visit_log_section.grid(row=row_pos, column=0, columnspan=2, sticky="nsew", pady=(10, 10))
+        
+        visit_log_header = tk.Label(
+            visit_log_section, 
+            text="Nurse Visit Log", 
+            font=self.section_font, 
+            bg=self.section_bg, 
+            fg=self.text_color,
+            anchor='w'
+        )
+        visit_log_header.pack(fill=tk.X, pady=(10, 10), padx=15)
+        add_tooltip(visit_log_header, "Records of nurse visits for this child")
+        
+        separator5 = tk.Frame(visit_log_section, height=2, bg=self.primary_color)
+        separator5.pack(fill=tk.X, padx=10)
+        
+        # Visit log table container
+        table_frame = tk.Frame(visit_log_section, bg=self.section_bg, padx=15, pady=10)
+        table_frame.pack(fill=tk.BOTH, expand=True)
+        
+        self.visit_tree = ttk.Treeview(table_frame, columns=("Nurse", "Time"), show='headings', height=6)
+        self.visit_tree.heading("Nurse", text="Nurse Name")
+        self.visit_tree.heading("Time", text="Visit Time")
+        self.visit_tree.column("Nurse", anchor="center", width=150)
+        self.visit_tree.column("Time", anchor="center", width=200)
+        self.visit_tree.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
+        
+        # Add scrollbar to treeview
+        vsb = ttk.Scrollbar(table_frame, orient="vertical", command=self.visit_tree.yview)
+        vsb.pack(fill=tk.Y, side=tk.RIGHT)
+        self.visit_tree.configure(yscrollcommand=vsb.set)
+        
+        # Load visit log data
+        self.update_visit_log()
+
         # Add spacing at the bottom of scrollable content
         tk.Frame(content_frame, height=30, bg=self.bg_color).pack(fill=tk.X)
-        
+
         # === FIXED ACTION BUTTONS SECTION (Always visible) ===
         button_container = tk.Frame(self.view, bg=self.primary_color, bd=0)
         button_container.grid(row=1, column=0, columnspan=2, sticky="ew")
@@ -379,6 +417,21 @@ class ProfileView:
         assign_btn = create_button(button_row, "Assign Nurse", self.assign_nurse, is_primary=True)
         assign_btn.pack(side=tk.LEFT, padx=5)
         add_tooltip(assign_btn, "Assign or change the nurse responsible for this child")
+        
+        # Auto Log Visit button
+        auto_log_btn = create_button(button_row, "Auto Log Visit", self.auto_log_visit)
+        auto_log_btn.pack(side=tk.LEFT, padx=5)
+        add_tooltip(auto_log_btn, "Log a visit using the currently assigned nurse and current time")
+        
+        # Manual Log Visit button
+        manual_log_btn = create_button(button_row, "Manual Log Visit", self.manual_log_visit)
+        manual_log_btn.pack(side=tk.LEFT, padx=5)
+        add_tooltip(manual_log_btn, "Manually enter nurse name and visit time")
+        
+        # Delete Selected Visit button
+        delete_visit_btn = create_button(button_row, "Delete Selected Visit", self.delete_selected_visit)
+        delete_visit_btn.pack(side=tk.LEFT, padx=5)
+        add_tooltip(delete_visit_btn, "Delete the selected visit from the record")
         
         # Copy Profile Info button
         copy_btn = create_button(button_row, "Copy Profile Info", self.controller.copy_to_clipboard)
