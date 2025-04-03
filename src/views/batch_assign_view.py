@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
+from views.tooltip import add_tooltip
 
 
 class BatchAssignView:
@@ -17,21 +18,41 @@ class BatchAssignView:
         main_frame.pack(expand=True, fill='both', padx=20, pady=20)
 
         # Filter entries
-        tk.Label(main_frame, text="Filter by City:").pack(pady=5)
+        city_label = tk.Label(main_frame, text="Filter by City:")
+        city_label.pack(pady=5)
+        add_tooltip(city_label, "Enter a city name to assign a nurse to all children in this city")
+        
         city_var = tk.StringVar()
-        tk.Entry(main_frame, textvariable=city_var).pack(pady=5)
+        city_entry = tk.Entry(main_frame, textvariable=city_var)
+        city_entry.pack(pady=5)
+        add_tooltip(city_entry, "Leave blank to ignore this filter")
 
-        tk.Label(main_frame, text="Filter by State:").pack(pady=5)
+        state_label = tk.Label(main_frame, text="Filter by State:")
+        state_label.pack(pady=5)
+        add_tooltip(state_label, "Enter a state abbreviation to assign a nurse to all children in this state")
+        
         state_var = tk.StringVar()
-        tk.Entry(main_frame, textvariable=state_var).pack(pady=5)
+        state_entry = tk.Entry(main_frame, textvariable=state_var)
+        state_entry.pack(pady=5)
+        add_tooltip(state_entry, "Leave blank to ignore this filter")
 
-        tk.Label(main_frame, text="Filter by ZIP Code:").pack(pady=5)
+        zip_label = tk.Label(main_frame, text="Filter by ZIP Code:")
+        zip_label.pack(pady=5)
+        add_tooltip(zip_label, "Enter a ZIP code to assign a nurse to all children in this area")
+        
         zip_var = tk.StringVar()
-        tk.Entry(main_frame, textvariable=zip_var).pack(pady=5)
+        zip_entry = tk.Entry(main_frame, textvariable=zip_var)
+        zip_entry.pack(pady=5)
+        add_tooltip(zip_entry, "Leave blank to ignore this filter")
 
-        tk.Label(main_frame, text="Nurse Name:").pack(pady=5)
+        nurse_label = tk.Label(main_frame, text="Nurse Name:")
+        nurse_label.pack(pady=5)
+        add_tooltip(nurse_label, "Enter the name of the nurse to assign (required)")
+        
         nurse_var = tk.StringVar()
-        tk.Entry(main_frame, textvariable=nurse_var).pack(pady=5)
+        nurse_entry = tk.Entry(main_frame, textvariable=nurse_var)
+        nurse_entry.pack(pady=5)
+        add_tooltip(nurse_entry, "Required - name of the nurse who will be assigned to all matching children")
 
         # Create a frame for buttons at the bottom
         button_frame = tk.Frame(main_frame)
@@ -54,7 +75,12 @@ class BatchAssignView:
                 messagebox.showinfo("No Matches", "No records matched the filters.")
 
         # Add both Save and Cancel buttons
-        tk.Button(button_frame, text="Save", command=save, width=10).pack(side=tk.LEFT, padx=5)
-        tk.Button(button_frame, text="Cancel", command=self.controller.close_batch_assign , width=10).pack(side=tk.LEFT, padx=5)
+        save_btn = tk.Button(button_frame, text="Save", command=save, width=10)
+        save_btn.pack(side=tk.LEFT, padx=5)
+        add_tooltip(save_btn, "Assign the specified nurse to all children matching your criteria")
+        
+        cancel_btn = tk.Button(button_frame, text="Cancel", command=self.controller.close_batch_assign, width=10)
+        cancel_btn.pack(side=tk.LEFT, padx=5)
+        add_tooltip(cancel_btn, "Cancel this operation and close the window")
 
         return window
