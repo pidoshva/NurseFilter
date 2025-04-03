@@ -414,7 +414,7 @@ class ProfileView:
         button_row.pack(fill=tk.X)
         
         # Assign Nurse button (primary action)
-        assign_btn = create_button(button_row, "Assign Nurse", self.assign_nurse, is_primary=True)
+        assign_btn = create_button(button_row, "Assign Nurse", self.assign_nurse)
         assign_btn.pack(side=tk.LEFT, padx=5)
         add_tooltip(assign_btn, "Assign or change the nurse responsible for this child")
         
@@ -503,12 +503,89 @@ class ProfileView:
     def auto_log_visit(self):
         nurse_name = self.child_data.get("Assigned_Nurse")
         if pd.isna(nurse_name) or not nurse_name or nurse_name.lower() in ["none", "n/a", "nan"]:
-            messagebox.showerror("Error", "Please assign a nurse before logging a visit.")
+            self.show_custom_dialog("Error", "Please assign a nurse before logging a visit.", "error")
             return
-        visit_time = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.save_nurse_log(nurse_name, visit_time)
+        self.controller.log_nurse_visit(self.child_data)
         self.update_visit_log()
-        messagebox.showinfo("Success", f"Visit logged for nurse {nurse_name}.")
+        self.show_custom_dialog("Success", f"Visit logged for nurse {nurse_name}.", "info")
+
+    def show_custom_dialog(self, title, message, dialog_type="info"):
+        """Show a custom dialog with the baby icon"""
+        dialog = tk.Toplevel(self.root)
+        dialog.title(title)
+        dialog.geometry("400x220")  # Increased size for more padding
+        dialog.resizable(False, False)
+        
+        # Make dialog modal
+        dialog.transient(self.root)
+        dialog.grab_set()
+        
+        # Center the dialog on the screen
+        dialog.update_idletasks()
+        width = dialog.winfo_width()
+        height = dialog.winfo_height()
+        x = (dialog.winfo_screenwidth() // 2) - (width // 2)
+        y = (dialog.winfo_screenheight() // 2) - (height // 2)
+        dialog.geometry(f'+{x}+{y}')
+        
+        # Configure dialog style
+        dialog.configure(bg=self.bg_color)
+        
+        # Main container with padding
+        main_container = tk.Frame(dialog, bg=self.bg_color, padx=30, pady=20)
+        main_container.pack(fill=tk.BOTH, expand=True)
+        
+        # Icon frame
+        icon_frame = tk.Frame(main_container, bg=self.bg_color)
+        icon_frame.pack(pady=(0, 15))
+        
+        # Use the baby icon if available
+        if hasattr(self, 'icon') and self.icon:
+            icon_label = tk.Label(icon_frame, image=self.icon, bg=self.bg_color)
+            icon_label.pack()
+        
+        # Message
+        message_label = tk.Label(
+            main_container,
+            text=message,
+            font=self.label_font,
+            bg=self.bg_color,
+            fg=self.text_color,
+            wraplength=300,  # Increased wraplength for better text flow
+            justify=tk.CENTER  # Center-align text
+        )
+        message_label.pack(pady=(0, 20))  # More space between message and button
+        
+        # OK button
+        ok_button = tk.Button(
+            main_container,
+            text="OK",
+            command=dialog.destroy,
+            font=self.button_font,
+            bg=self.accent_color if dialog_type == "error" else self.success_color,
+            fg="black",
+            padx=30,  # Wider button
+            pady=8,   # Taller button
+            cursor="hand2"
+        )
+        ok_button.pack(pady=(0, 10))
+        
+        # Add hover effect to OK button
+        hover_color = self.button_hover_color if dialog_type == "error" else "#2da146"  # Darker green for success
+        ok_button.bind("<Enter>", lambda e: ok_button.config(bg=hover_color))
+        ok_button.bind("<Leave>", lambda e: ok_button.config(
+            bg=self.accent_color if dialog_type == "error" else self.success_color
+        ))
+        
+        # Bind Enter key to close dialog
+        dialog.bind("<Return>", lambda e: dialog.destroy())
+        dialog.bind("<Escape>", lambda e: dialog.destroy())
+        
+        # Focus the OK button
+        ok_button.focus_set()
+        
+        # Wait for the dialog to be closed
+        dialog.wait_window()
 
     def manual_log_visit(self):
         nurse_name = simpledialog.askstring("Manual Log", "Enter Nurse Name:")
@@ -518,43 +595,107 @@ class ProfileView:
         try:
             datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S")
         except ValueError:
-            messagebox.showerror("Error", "Invalid time format.")
+            self.show_custom_dialog("Error", "Invalid time format.", "error")
             return
-        self.save_nurse_log(nurse_name.strip(), time_str)
+        self.controller.log_nurse_visit(self.child_data, nurse_name.strip(), time_str)
         self.update_visit_log()
-        messagebox.showinfo("Success", f"Visit logged for nurse {nurse_name}.")
-
-    def save_nurse_log(self, nurse_name, visit_time):
-        file = "nurse_log.xlsx"
-        if os.path.exists(file):
-            df = pd.read_excel(file)
-        else:
-            df = pd.DataFrame(columns=["Visit_ID", "Mother_ID", "Child_First_Name", "Child_Last_Name", "Nurse_Name", "Visit_Time"])
-        visit_id = len(df) + 1
-        new_row = {
-            "Visit_ID": visit_id,
-            "Mother_ID": self.child_data.get("Mother_ID", "N/A"),
-            "Child_First_Name": self.child_data.get("Child_First_Name", "N/A"),
-            "Child_Last_Name": self.child_data.get("Child_Last_Name", "N/A"),
-            "Nurse_Name": nurse_name,
-            "Visit_Time": visit_time
-        }
-        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-        df.to_excel(file, index=False)
+        self.show_custom_dialog("Success", f"Visit logged for nurse {nurse_name}.", "info")
 
     def delete_selected_visit(self):
         selected = self.visit_tree.selection()
         if not selected:
-            messagebox.showwarning("No selection", "Please select a visit log to delete.")
+            self.show_custom_dialog("Warning", "Please select a visit log to delete.", "warning")
             return
         nurse_name, visit_time = self.visit_tree.item(selected[0])['values']
-        confirm = messagebox.askyesno("Confirm Deletion", f"Delete visit by {nurse_name} on {visit_time}?")
-        if not confirm:
+        
+        # Create confirmation dialog
+        confirm = tk.Toplevel(self.root)
+        confirm.title("Confirm Deletion")
+        confirm.geometry("350x200")
+        confirm.resizable(False, False)
+        confirm.transient(self.root)
+        confirm.grab_set()
+        
+        # Center the dialog
+        confirm.update_idletasks()
+        width = confirm.winfo_width()
+        height = confirm.winfo_height()
+        x = (confirm.winfo_screenwidth() // 2) - (width // 2)
+        y = (confirm.winfo_screenheight() // 2) - (height // 2)
+        confirm.geometry(f'+{x}+{y}')
+        
+        # Configure dialog style
+        confirm.configure(bg=self.bg_color)
+        
+        # Icon
+        if hasattr(self, 'icon') and self.icon:
+            icon_label = tk.Label(confirm, image=self.icon, bg=self.bg_color)
+            icon_label.pack(pady=(15, 5))
+        
+        # Message
+        message = f"Delete visit by {nurse_name}\non {visit_time}?"
+        message_label = tk.Label(
+            confirm,
+            text=message,
+            font=self.label_font,
+            bg=self.bg_color,
+            fg=self.text_color,
+            wraplength=300
+        )
+        message_label.pack(pady=10)
+        
+        # Button frame
+        button_frame = tk.Frame(confirm, bg=self.bg_color)
+        button_frame.pack(pady=10)
+        
+        result = [False]  # Use list to store result since Python 3 doesn't have nonlocal
+        
+        def on_yes():
+            result[0] = True
+            confirm.destroy()
+            
+        def on_no():
+            confirm.destroy()
+        
+        # Yes button
+        yes_btn = tk.Button(
+            button_frame,
+            text="Yes",
+            command=on_yes,
+            font=self.button_font,
+            bg=self.accent_color,
+            fg="white",
+            padx=20,
+            pady=5,
+            cursor="hand2"
+        )
+        yes_btn.pack(side=tk.LEFT, padx=5)
+        
+        # No button
+        no_btn = tk.Button(
+            button_frame,
+            text="No",
+            command=on_no,
+            font=self.button_font,
+            bg="#ffffff",
+            fg=self.text_color,
+            padx=20,
+            pady=5,
+            cursor="hand2"
+        )
+        no_btn.pack(side=tk.LEFT, padx=5)
+        
+        # Wait for dialog
+        confirm.wait_window()
+        
+        if not result[0]:
             return
+            
         path = "nurse_log.xlsx"
         if not os.path.exists(path):
-            messagebox.showerror("Error", "Log file not found.")
+            self.show_custom_dialog("Error", "Log file not found.", "error")
             return
+            
         df = pd.read_excel(path)
         match_mask = (
             (df["Mother_ID"].astype(str) == str(self.child_data.get("Mother_ID", ""))) &
@@ -564,9 +705,10 @@ class ProfileView:
             (df["Visit_Time"] == visit_time)
         )
         if not match_mask.any():
-            messagebox.showerror("Error", "No matching record found in file.")
+            self.show_custom_dialog("Error", "No matching record found in file.", "error")
             return
+            
         df = df[~match_mask]
         df.to_excel(path, index=False)
         self.update_visit_log()
-        messagebox.showinfo("Deleted", "Visit log deleted successfully.")
+        self.show_custom_dialog("Success", "Visit log deleted successfully.", "info")
