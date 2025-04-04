@@ -5,6 +5,7 @@ import pandas as pd
 from views.combined_data_view import CombinedDataView
 from views.unmatched_data_view import UnmatchedDataView
 from views.duplicate_data_view import DuplicateDataView
+from controllers.duplicate_data_controller import DuplicateDataController
 from models.data_model import DataModel
 
 class CombinedDataController:
@@ -90,15 +91,8 @@ class CombinedDataController:
         Display duplicate data in a separate window.
         """
         logging.info("Attempting to display duplicate data.")
-
-        if self.model.duplicate_data is None or self.model.duplicate_data.empty:
-            messagebox.showinfo("No Data", "No duplicate data found.")
-            return
-
-        duplicate_window = DuplicateDataView(self.root, self, self.model.duplicate_data)
-        self.duplicate_data_view = duplicate_window.create_widgets()
-        self.main_controller.add_tab(self.duplicate_data_view, "Duplicate Data")
-        return self.duplicate_data_view
+        controller = DuplicateDataController(self.root, self.model, self.main_controller)
+        controller.show_duplicate_data()
 
 
     def view_unmatched_data(self):
