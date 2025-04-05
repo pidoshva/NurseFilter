@@ -40,6 +40,74 @@ You can install the required dependencies using pip:
 pip install pandas openpyxl tkinter reportlab cryptography
 ```
 
+## Excel File Requirements
+
+### Hospital Dataset Format
+The hospital dataset Excel file must contain the following columns with specified formats:
+
+| Column Name | Data Type | Description |
+|-------------|-----------|-------------|
+| Mother_ID | String | Unique identifier for the mother |
+| Mother_First_Name | String | Mother's first name |
+| Mother_Last_Name | String | Mother's last name |
+| Child_First_Name | String | Child's first name |
+| Child_Last_Name | String | Child's last name |
+| Child_DOB | Date (YYYY-MM-DD) | Child's date of birth |
+| Street_Address | String | Mother's street address |
+| City | String | City of residence |
+| State | String | Two-letter state code |
+| ZIP | String | 5-digit ZIP code |
+| Phone | String | Contact phone number |
+| Mobile | String | Mobile phone number |
+
+### Medicaid Dataset Format
+The Medicaid dataset Excel file must contain the following columns with specified formats:
+
+| Column Name | Data Type | Description |
+|-------------|-----------|-------------|
+| Mother_First_Name | String | Mother's first name |
+| Mother_Last_Name | String | Mother's last name |
+| Child_First_Name | String | Child's first name |
+| Child_Last_Name | String | Child's last name |
+| Child_DOB | Date (YYYY-MM-DD) | Child's date of birth |
+| Medicaid_ID | String | Unique Medicaid identifier |
+| Coverage_Start_Date | Date (YYYY-MM-DD) | Start date of Medicaid coverage |
+| Coverage_End_Date | Date (YYYY-MM-DD) | End date of Medicaid coverage |
+
+### Data Format Requirements
+- All date fields must be in YYYY-MM-DD format
+- String fields should not contain special characters except for spaces and hyphens
+- Phone numbers should be in (XXX) XXX-XXXX format
+- ZIP codes must be 5 digits
+- State codes should be 2 letters (e.g., UT, CA, NY)
+
+## Test Data Generation
+
+The application includes a `sheetgenerator.py` utility to create test Excel files with realistic data. This tool is useful for testing and development purposes.
+
+### Using the Sheet Generator
+
+1. Run the sheet generator script:
+```bash
+python sheetgenerator.py
+```
+
+2. The script will create two Excel files:
+   - `hospital_data.xlsx`: Contains hospital dataset with random but realistic data
+   - `medicaid_data.xlsx`: Contains Medicaid dataset with matching records
+
+3. Optional parameters:
+   - `--rows N`: Generate N rows of data (default: 100)
+   - `--seed S`: Set random seed for reproducible data (default: random)
+   - `--output-dir PATH`: Specify output directory (default: current directory)
+
+Example usage:
+```bash
+python sheetgenerator.py --rows 500 --seed 42 --output-dir ./test_data
+```
+
+The generated files will follow the exact format requirements specified above and can be used immediately with the main application.
+
 ## Installation
 
 1. Clone or download this repository.
