@@ -13,7 +13,67 @@ January 2025
        files containing healthcare data, with features for nurse assignment and 
        data security.
 
-2. Functional Requirements
+2. Excel File Requirements
+
+   2.1 Hospital Dataset Format
+       The hospital dataset Excel file must contain the following columns with 
+       specified formats:
+
+       Column Name        Data Type    Description
+       Mother_ID         String       Unique identifier for the mother
+       Mother_First_Name String       Mother's first name
+       Mother_Last_Name  String       Mother's last name
+       Child_First_Name  String       Child's first name
+       Child_Last_Name   String       Child's last name
+       Child_DOB         Date         Child's date of birth (YYYY-MM-DD)
+       Street_Address    String       Mother's street address
+       City              String       City of residence
+       State             String       Two-letter state code
+       ZIP               String       5-digit ZIP code
+       Phone             String       Contact phone number
+       Mobile            String       Mobile phone number
+
+   2.2 Medicaid Dataset Format
+       The Medicaid dataset Excel file must contain the following columns with 
+       specified formats:
+
+       Column Name        Data Type    Description
+       Mother_First_Name String       Mother's first name
+       Mother_Last_Name  String       Mother's last name
+       Child_First_Name  String       Child's first name
+       Child_Last_Name   String       Child's last name
+       Child_DOB         Date         Child's date of birth (YYYY-MM-DD)
+       Medicaid_ID       String       Unique Medicaid identifier
+       Coverage_Start_Date Date       Start date of Medicaid coverage (YYYY-MM-DD)
+       Coverage_End_Date   Date       End date of Medicaid coverage (YYYY-MM-DD)
+
+   2.3 Data Format Requirements
+       NFR2.1: All date fields must be in YYYY-MM-DD format
+               Test: Verify date parsing for various date formats
+
+       NFR2.2: String fields should not contain special characters except for 
+               spaces and hyphens
+               Test: Verify string validation for various character combinations
+
+       NFR2.3: Phone numbers should be in (XXX) XXX-XXXX format
+               Test: Verify phone number format validation
+
+       NFR2.4: ZIP codes must be 5 digits
+               Test: Verify ZIP code format validation
+
+       NFR2.5: State codes should be 2 letters (e.g., UT, CA, NY)
+               Test: Verify state code validation
+
+       NFR2.6: The system shall validate all required columns are present
+               Test: Verify column presence validation
+
+       NFR2.7: The system shall validate data types for each column
+               Test: Verify data type validation
+
+       NFR2.8: The system shall provide clear error messages for invalid data
+               Test: Verify error message generation for invalid data
+
+3. Functional Requirements
 
    2.1 Excel File Management
        FR1.1: The system shall allow users to select and load two Excel files
@@ -93,47 +153,91 @@ January 2025
        FR7.2: The system shall support exporting reports to PDF format.
              Test: Verify PDF export functionality creates valid PDF files.
 
-3. Non-Functional Requirements
+   2.8 Nurse Log Management
+       FR8.1: The system shall maintain a log of nurse assignments with timestamps.
+             Test: Verify nurse assignment log entries are created and timestamped.
 
-   3.1 Performance
+       FR8.2: The system shall allow viewing nurse assignment history for each child.
+             Test: Verify nurse assignment history can be viewed for any child.
+
+       FR8.3: The system shall support filtering nurse logs by:
+             - Date range
+             - Nurse name
+             - Child name
+             Test: Verify nurse log filtering functionality.
+
+       FR8.4: The system shall export nurse logs to Excel format.
+             Test: Verify nurse log export functionality.
+
+   2.9 Data Validation and Error Handling
+       FR9.1: The system shall validate data integrity during file loading.
+             Test: Verify data validation during file loading.
+
+       FR9.2: The system shall provide detailed error messages for:
+             - Missing required columns
+             - Invalid data formats
+             - Duplicate records
+             - Data type mismatches
+             Test: Verify error message generation for various error conditions.
+
+       FR9.3: The system shall maintain data consistency during:
+             - File loading
+             - Data combination
+             - Nurse assignments
+             - Data export
+             Test: Verify data consistency across all operations.
+
+   2.10 User Interface Enhancements
+       FR10.1: The system shall provide tooltips for all interface elements.
+             Test: Verify tooltip display for all UI elements.
+
+       FR10.2: The system shall support pressing enter to submit a text input.
+             Test: Verify keyboard shortcut functionality.
+
+       FR10.3: The system shall maintain user preferences between sessions.
+             Test: Verify user preference persistence.
+
+4. Non-Functional Requirements
+
+   4.1 Performance
        NFR1.1: The system shall load Excel files (size ≤ 10MB) within 5 seconds.
                Test: Time file loading operations.
 
        NFR1.2: The system shall complete data combination within 10 seconds.
                Test: Measure data combination execution time.
 
-   3.2 Usability
+   4.2 Usability
        NFR2.1: The system shall provide error messages for all error states.
                Test: Verify error messages are displayed for various error conditions.
 
        NFR2.2: The system shall maintain consistent UI layout across all windows.
                Test: Verify UI elements maintain position and style.
 
-   3.3 Reliability
+   4.3 Reliability
        NFR3.1: The system shall handle invalid data formats without crashing.
                Test: Input invalid data formats and verify graceful handling.
 
        NFR3.2: The system shall maintain data integrity during encryption/decryption.
                Test: Verify data remains unchanged after encryption/decryption cycle.
 
-   3.4 Security
+   4.4 Security
        NFR4.1: The system shall use Fernet symmetric encryption for all data security operations.
                Test: Verify encryption implementation meets standards.
 
        NFR4.2: The system shall not store encryption keys in plaintext.
                Test: Verify key storage security.
 
-   3.5 Maintainability
+   4.5 Maintainability
        NFR5.1: The system shall follow MVC architecture pattern.
                Test: Code review to verify separation of concerns.
 
-4. Constraints
-   4.1: The system shall be implemented in Python 3.x
-   4.2: The system shall use tkinter for GUI implementation
-   4.3: The system shall support Excel files (.xlsx format)
-   4.4: The system shall run on Windows, macOS, and Linux platforms
+5. Constraints
+   5.1: The system shall be implemented in Python 3.x
+   5.2: The system shall use tkinter for GUI implementation
+   5.3: The system shall support Excel files (.xlsx format)
+   5.4: The system shall run on Windows, macOS, and Linux platforms
 
-5. Assumptions and Dependencies
-   5.1: Users have appropriate permissions to read/write Excel files
-   5.2: Required Python packages are available and installed
-   5.3: System has sufficient memory to handle Excel file operations 
+6. Assumptions and Dependencies
+   6.1: Users have appropriate permissions to read/write Excel files
+   6.2: Required Python packages are available and installed
+   6.3: System has sufficient memory to handle Excel file operations 
