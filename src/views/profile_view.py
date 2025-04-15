@@ -340,7 +340,7 @@ class ProfileView:
         
         visit_log_header = tk.Label(
             visit_log_section, 
-            text="Nurse Visit Log", 
+            text="Nurse Assignment History", 
             font=self.section_font, 
             bg=self.section_bg, 
             fg=self.text_color,
@@ -358,7 +358,7 @@ class ProfileView:
         
         self.visit_tree = ttk.Treeview(table_frame, columns=("Nurse", "Time"), show='headings', height=6)
         self.visit_tree.heading("Nurse", text="Nurse Name")
-        self.visit_tree.heading("Time", text="Visit Time")
+        self.visit_tree.heading("Time", text="Date Assigned")
         self.visit_tree.column("Nurse", anchor="center", width=150)
         self.visit_tree.column("Time", anchor="center", width=200)
         self.visit_tree.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
@@ -424,9 +424,9 @@ class ProfileView:
         add_tooltip(auto_log_btn, "Log a visit using the currently assigned nurse and current time")
         
         # Manual Log Visit button
-        manual_log_btn = create_button(button_row, "Manual Log Visit", self.manual_log_visit)
-        manual_log_btn.pack(side=tk.LEFT, padx=5)
-        add_tooltip(manual_log_btn, "Manually enter nurse name and visit time")
+        # manual_log_btn = create_button(button_row, "Manual Log Visit", self.manual_log_visit)
+        # manual_log_btn.pack(side=tk.LEFT, padx=5)
+        # add_tooltip(manual_log_btn, "Manually enter nurse name and visit time")
         
         # Delete Selected Visit button
         delete_visit_btn = create_button(button_row, "Delete Selected Visit", self.delete_selected_visit)
