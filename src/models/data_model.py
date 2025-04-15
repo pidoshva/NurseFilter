@@ -288,7 +288,7 @@ class DataModel:
             return False
 
 
-    def load_combined_data(self, progress_callback=None):
+    def load_combined_data(self, filepath='combined_matched_data.xlsx', progress_callback=None):
         """
         Load the combined data from the saved Excel file.
         
@@ -298,7 +298,7 @@ class DataModel:
         Returns:
             True if successful, False otherwise
         """
-        path = 'combined_matched_data.xlsx'
+        path = filepath
         
         # Initial progress
         if progress_callback:
