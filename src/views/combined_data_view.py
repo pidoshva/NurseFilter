@@ -164,10 +164,10 @@ class CombinedDataView:
                 row.get('Child_First_Name', ''),
                 row.get('Child_Last_Name', ''),
                 row.get('Child_Date_of_Birth', ''),
-                row.get('City_db',''),
-                row.get('Zip',''),
+                row.get('City',''),
+                row.get('ZIP',''),
                 row.get('Phone_#',''),
-                row.get('Street_address',''),
+                row.get('Street',''),
 
                 row.get('Assigned_Nurse', 'None')  # Ensure 'None' is displayed if no nurse
             ]
