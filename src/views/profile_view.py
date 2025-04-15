@@ -424,9 +424,9 @@ class ProfileView:
         add_tooltip(auto_log_btn, "Log a visit using the currently assigned nurse and current time")
         
         # Manual Log Visit button
-        manual_log_btn = create_button(button_row, "Manual Log Visit", self.manual_log_visit)
-        manual_log_btn.pack(side=tk.LEFT, padx=5)
-        add_tooltip(manual_log_btn, "Manually enter nurse name and visit time")
+        # manual_log_btn = create_button(button_row, "Manual Log Visit", self.manual_log_visit)
+        # manual_log_btn.pack(side=tk.LEFT, padx=5)
+        # add_tooltip(manual_log_btn, "Manually enter nurse name and visit time")
         
         # Delete Selected Visit button
         delete_visit_btn = create_button(button_row, "Delete Selected Visit", self.delete_selected_visit)
