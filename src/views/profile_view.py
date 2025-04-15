@@ -340,7 +340,7 @@ class ProfileView:
         
         visit_log_header = tk.Label(
             visit_log_section, 
-            text="Nurse Visit Log", 
+            text="Nurse Assignment History", 
             font=self.section_font, 
             bg=self.section_bg, 
             fg=self.text_color,
@@ -358,7 +358,7 @@ class ProfileView:
         
         self.visit_tree = ttk.Treeview(table_frame, columns=("Nurse", "Time"), show='headings', height=6)
         self.visit_tree.heading("Nurse", text="Nurse Name")
-        self.visit_tree.heading("Time", text="Visit Time")
+        self.visit_tree.heading("Time", text="Date Assigned")
         self.visit_tree.column("Nurse", anchor="center", width=150)
         self.visit_tree.column("Time", anchor="center", width=200)
         self.visit_tree.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
