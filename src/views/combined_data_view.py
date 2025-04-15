@@ -108,6 +108,12 @@ class CombinedDataView:
         bottom_frame = tk.Frame(self.combined_window)
         bottom_frame.pack(fill=tk.X, pady=5)
 
+        # Add Data from Previous Session Button
+        add_button = tk.Button(bottom_frame, text="Add Data",
+                            command=self.controller.add_previous_combined_data)
+        add_button.pack(side=tk.LEFT, padx=10)
+        add_tooltip(add_button, "Append previous combined data to the current session")
+
         excel_btn = tk.Button(bottom_frame, text="Display in Excel",
                               command=self.controller.display_in_excel)
         excel_btn.pack(side=tk.LEFT, padx=10)
@@ -146,8 +152,6 @@ class CombinedDataView:
             dup_count_label.place(relx=1.0, rely=0.0, anchor="ne")
         return self.combined_window
         
-
-
     def update_treeview(self, data):
         """Update treeview with fresh data."""
         # Clear existing items

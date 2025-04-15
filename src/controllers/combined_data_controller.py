@@ -1,5 +1,6 @@
 import logging
 from tkinter import messagebox
+from tkinter import filedialog
 import pandas as pd
 
 from views.combined_data_view import CombinedDataView
@@ -88,6 +89,11 @@ class CombinedDataController:
             except Exception as e:
                 logging.error(f"Error refreshing combined data view: {e}")
                 messagebox.showerror("Error", f"Failed to refresh view: {e}")
+
+    def refresh_view(self):
+        if self.model.combined_data is not None:
+            self.view.update_treeview(self.model.combined_data)
+            logging.info("Combined data view refreshed with loaded data.")
     
     def view_duplicate_data(self):
         """
@@ -154,3 +160,39 @@ class CombinedDataController:
         if self.unmatched_data_view:
             self.main_controller.remove_tab(self.unmatched_data_view)
             self.unmatched_data_view = None
+
+    def add_previous_combined_data(self):
+        filepath = filedialog.askopenfilename(title="Select Combined Data Excel File", filetypes=[("Excel Files", "*.xlsx")])
+        if not filepath:
+            return
+
+        try:
+            new_data = pd.read_excel(filepath)
+
+            # Standardize null nurse fields
+            if 'Assigned_Nurse' in new_data.columns:
+                new_data['Assigned_Nurse'] = new_data['Assigned_Nurse'].fillna('None')
+            else:
+                new_data['Assigned_Nurse'] = 'None'
+
+            # Combine with existing data
+            if self.model.combined_data is not None:
+                combined = pd.concat([self.model.combined_data, new_data], ignore_index=True)
+            else:
+                combined = new_data.copy()
+
+            self.model.combined_data = combined
+
+            # Refresh view
+            if self.view:
+                self.view.update_treeview(combined)
+
+            # Save to file
+            combined.to_excel("combined_matched_data.xlsx", index=False)
+            logging.info("Previous combined data added and saved successfully.")
+
+            messagebox.showinfo("Success", "Data successfully loaded and added to combined dataset.")
+
+        except Exception as e:
+            logging.error(f"Error loading previous combined data: {e}")
+            messagebox.showerror("Error", f"Failed to load data: {e}")

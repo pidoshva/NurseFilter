@@ -84,6 +84,13 @@ class MainController:
     def generate_report(self):
         controller = self._get_nurse_controller()
         return controller.generate_report()
+    
+    def load_existing_combined_data(self):
+        if self.model.load_combined_data():
+            controller = self._get_combined_data_controller()
+            return controller.refresh_view()
+        else:
+            messagebox.showerror("Error", "Failed to load existing combined data.")
 
     def display_in_excel(self, filepath):
         '''
