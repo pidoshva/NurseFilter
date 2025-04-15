@@ -140,43 +140,37 @@ class InitialController:
 
     # Method to load existing combined data file
     def load_existing_combined_data(self):
-        """Load an existing combined data file."""
-        # Define operation with progress updates
+        """Prompt user for a file and load combined data from it."""
+        filepath = filedialog.askopenfilename(
+            title="Select a Combined Data Excel File",
+            filetypes=[("Excel files", "*.xlsx")]
+        )
+        
+        if not filepath:
+            return  # User cancelled
+
         def loading_operation(progress_callback):
-            # Start progress
-            progress_callback("Checking for combined data file", 10)
-            
-            # Load combined data 
-            progress_callback("Loading combined data", 40)
-            success = self.model.load_combined_data()
-            
+            progress_callback("Loading selected file", 20)
+            success = self.model.load_combined_data(filepath)
+
             if success:
-                progress_callback("Preparing data view", 80)
-                
-                # Show combined data view
+                progress_callback("Refreshing data view", 60)
                 self.main_controller.show_combined_data()
-                
-                # Remove tab when done
                 try:
-                    progress_callback("Finalizing", 95)
                     self.main_controller.remove_tab(self.view)
                 except Exception as e:
                     logging.error(f"Error removing tab: {e}")
-                    
-                progress_callback("Complete", 100)
+                progress_callback("Done", 100)
             else:
-                progress_callback("Failed to load combined data", 100)
-                
+                progress_callback("Failed to load file", 100)
             return success
-        
-        # Show progress window
-        result = show_progress_for_operation(
-            self.root, 
-            loading_operation, 
-            "Loading Combined Data File"
+
+        show_progress_for_operation(
+            self.root,
+            loading_operation,
+            "Loading Existing Combined File"
         )
-        return result
-        
+
     def clear_loaded_files(self):
         """Clear all loaded data frames from the model."""
         # Reset data frames and file types
