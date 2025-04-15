@@ -3,7 +3,6 @@ import os
 import pandas as pd
 from tkinter import messagebox
 from app_crypto import Crypto
-from tkinter import filedialog
 
 class DataModel:
     """
