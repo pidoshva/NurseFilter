@@ -3,6 +3,8 @@ import os
 import pandas as pd
 from tkinter import messagebox
 from app_crypto import Crypto
+import time
+import polars as pl
 
 class DataModel:
     """
@@ -130,163 +132,102 @@ class DataModel:
             messagebox.showerror("Error", f"Error reading file")
             return None
 
-    def combine_data(self, progress_callback=None):
-        """
-        Combine database and Medicaid data.
-        
-        Args:
-            progress_callback: Optional callback for progress updates
-            
-        Returns:
-            True if successful, False otherwise
-        """
+    def combine_data(self):
+        start_time = time.time()
+
         if len(self.data_frames) < 2:
-            if progress_callback:
-                progress_callback("Need two files", 100)
             messagebox.showerror("Error", "Please load two Excel files before combining data.")
             return False
-            
+
         try:
-            # Initial progress
-            if progress_callback:
-                progress_callback("Preparing data", 10)
-                
-            db_df = self.data_frames[0].copy()
-            med_df = self.data_frames[1].copy()
+            # Convert to Polars
+            db_df = pl.from_pandas(self.data_frames[0].copy())
+            med_df = pl.from_pandas(self.data_frames[1].copy())
 
-            # Progress update
-            if progress_callback:
-                progress_callback("Normalizing data", 20)
+            # Rename columns for consistency
+            if "DOB" in db_df.columns:
+                db_df = db_df.rename({"DOB": "Child_Date_of_Birth"})
+            if "Child_DOB" in med_df.columns:
+                med_df = med_df.rename({"Child_DOB": "Child_Date_of_Birth"})
+            if "Last_Name" in med_df.columns:
+                med_df = med_df.rename({"Last_Name": "Mother_Last_Name"})
 
-            # Rename columns if needed
-            if 'DOB' in db_df.columns:
-                db_df.rename(columns={'DOB': 'Child_Date_of_Birth'}, inplace=True)
-            if 'Child_DOB' in med_df.columns:
-                med_df.rename(columns={'Child_DOB': 'Child_Date_of_Birth'}, inplace=True)
-            if 'Last_Name' in med_df.columns:
-                med_df.rename(columns={'Last_Name': 'Mother_Last_Name'}, inplace=True)
+            # Normalize + generate Match_Key
+            def normalize(df):
+                return df.with_columns([
+                    pl.col("Mother_First_Name").cast(pl.Utf8).str.to_lowercase().str.replace_all(r"\W", ""),
+                    pl.col("Mother_Last_Name").cast(pl.Utf8).str.to_lowercase().str.replace_all(r"\W", ""),
+                    pl.col("Child_Date_of_Birth").cast(pl.Utf8).str.strip_chars().str.strptime(pl.Date, "%Y-%m-%d", strict=False).cast(pl.Utf8),
+                ]).with_columns([
+                    (pl.col("Mother_First_Name") + "_" +
+                    pl.col("Mother_Last_Name") + "_" +
+                    pl.col("Child_Date_of_Birth")).alias("Match_Key")
+                ])
 
-            # Progress update
-            if progress_callback:
-                progress_callback("Processing names", 30)
-                
-            # Normalize mother names
-            for df in [db_df, med_df]:
-                for col in ['Mother_First_Name', 'Mother_Last_Name']:
-                    if col in df.columns:
-                        df[col] = df[col].astype(str).str.lower().str.replace(r'\W', '', regex=True)
+            db_df = normalize(db_df)
+            med_df = normalize(med_df)
 
-            # Progress update
-            if progress_callback:
-                progress_callback("Processing dates", 40)
-                
-            # Convert child DOB
-            db_df['Child_Date_of_Birth'] = pd.to_datetime(db_df['Child_Date_of_Birth'], errors='coerce').dt.strftime('%Y-%m-%d')
-            med_df['Child_Date_of_Birth'] = pd.to_datetime(med_df['Child_Date_of_Birth'], errors='coerce').dt.strftime('%Y-%m-%d')
+            # Join on Match_Key using Polars
+            combined = db_df.join(med_df, on="Match_Key", how="inner", suffix="_medicaid")
 
-            # Progress update
-            if progress_callback:
-                progress_callback("Merging data", 50)
-                
-            # Merge
-            combined = pd.merge(db_df, med_df,
-                                on=['Mother_First_Name', 'Mother_Last_Name', 'Child_Date_of_Birth'],
-                                how='inner', suffixes=('_db', '_medicaid'))
+            # Drop duplicate `_medicaid` columns
+            for col in ["Mother_First_Name", "Mother_Last_Name", "Child_Date_of_Birth"]:
+                if f"{col}_medicaid" in combined.columns:
+                    combined = combined.drop(f"{col}_medicaid")
 
-            # Progress update
-            if progress_callback:
-                progress_callback("Processing duplicates", 60)
-                
-            # Identify duplicates in the combined dataset
-            duplicate_rows = combined[combined.duplicated(subset=['Mother_ID', 'Child_First_Name', 'Child_Last_Name'], keep=False)].copy()
-            
-            if not duplicate_rows.empty:
-                duplicate_rows.to_excel('duplicate_names.xlsx', index=False)
-                self.duplicate_data = duplicate_rows
+            # Add Assigned_Nurse if missing
+            if "Assigned_Nurse" not in combined.columns:
+                combined = combined.with_columns(pl.lit("None").alias("Assigned_Nurse"))
+
+            # Capitalize child names
+            for col in ["Mother_First_Name", "Mother_Last_Name", "Child_First_Name", "Child_Last_Name"]:
+                if col in combined.columns:
+                    combined = combined.with_columns(pl.col(col).str.to_titlecase())
+
+            # Convert back to Pandas
+            combined_df = combined.drop("Match_Key").to_pandas()
+
+            # Detect duplicates with Pandas
+            duplicate_df = combined_df[combined_df.duplicated(
+                subset=["Mother_ID", "Child_First_Name", "Child_Last_Name"], keep=False)].copy()
+            if not duplicate_df.empty:
+                duplicate_df.to_excel("duplicate_names.xlsx", index=False)
+                self.duplicate_data = duplicate_df
             else:
                 self.duplicate_data = pd.DataFrame()
 
-            # Progress update
-            if progress_callback:
-                progress_callback("Finding unmatched records", 70)
-                
-            # Identify unmatched records
-            unmatched_db = db_df[~db_df.apply(
-                lambda row: (
-                    (combined['Mother_First_Name'] == row['Mother_First_Name']) &
-                    (combined['Mother_Last_Name'] == row['Mother_Last_Name']) &
-                    (combined['Child_Date_of_Birth'] == row['Child_Date_of_Birth'])
-                ).any(),
-                axis=1
-            )].copy()
-            unmatched_db['Source'] = 'Database'
+            # Detect unmatched records using hash key
+            db_df_pd = db_df.to_pandas()
+            med_df_pd = med_df.to_pandas()
+            combined_keys = set(combined_df["Mother_First_Name"].str.lower().str.replace(r'\W', '', regex=True) + "_" +
+                                combined_df["Mother_Last_Name"].str.lower().str.replace(r'\W', '', regex=True) + "_" +
+                                combined_df["Child_Date_of_Birth"])
 
-            unmatched_med = med_df[~med_df.apply(
-                lambda row: (
-                    (combined['Mother_First_Name'] == row['Mother_First_Name']) &
-                    (combined['Mother_Last_Name'] == row['Mother_Last_Name']) &
-                    (combined['Child_Date_of_Birth'] == row['Child_Date_of_Birth'])
-                ).any(),
-                axis=1
-            )].copy()
-            unmatched_med['Source'] = 'Medicaid'
+            unmatched_db = db_df_pd[~db_df_pd["Match_Key"].isin(combined_keys)].copy()
+            unmatched_db["Source"] = "Database"
 
-            # Progress update
-            if progress_callback:
-                progress_callback("Processing unmatched data", 80)
-                
-            if not unmatched_db.empty or not unmatched_med.empty:
-                combined_cols = list(combined.columns)
-                unmatched_db = unmatched_db.reindex(columns=combined_cols + ['Source'], fill_value='')
-                unmatched_med = unmatched_med.reindex(columns=combined_cols + ['Source'], fill_value='')
-                unmatched = pd.concat([unmatched_db, unmatched_med], ignore_index=True)
+            unmatched_med = med_df_pd[~med_df_pd["Match_Key"].isin(combined_keys)].copy()
+            unmatched_med["Source"] = "Medicaid"
 
-                # Capitalize unmatched columns
+            unmatched = pd.concat([unmatched_db, unmatched_med], ignore_index=True) if not unmatched_db.empty or not unmatched_med.empty else pd.DataFrame()
+            if not unmatched.empty:
                 for col in ['Mother_First_Name', 'Mother_Last_Name', 'Child_First_Name', 'Child_Last_Name']:
                     if col in unmatched.columns:
-                        unmatched[col] = unmatched[col].str.capitalize()
+                        unmatched[col] = unmatched[col].astype(str).str.capitalize()
+                unmatched.to_excel("unmatched_data.xlsx", index=False)
+            self.unmatched_data = unmatched
 
-                unmatched.to_excel('unmatched_data.xlsx', index=False)
-                self.unmatched_data = unmatched
-            else:
-                self.unmatched_data = pd.DataFrame()
+            # Save and assign
+            combined_df.to_excel("combined_matched_data.xlsx", index=False)
+            self.combined_data = combined_df
 
-            # Progress update
-            if progress_callback:
-                progress_callback("Finalizing data", 90)
-                
-            # Capitalize combined columns
-            for col in ['Mother_First_Name', 'Mother_Last_Name', 'Child_First_Name', 'Child_Last_Name']:
-                if col in combined.columns:
-                    combined[col] = combined[col].astype(str).str.capitalize()
-
-             # Check and set 'Assigned_Nurse' column to None if it has no value
-            if 'Assigned_Nurse' in combined.columns:
-                combined['Assigned_Nurse'] = combined['Assigned_Nurse'].fillna('None')
-
-            # Progress update
-            if progress_callback:
-                progress_callback("Saving data", 95)
-                
-            combined.to_excel('combined_matched_data.xlsx', index=False)
-            self.combined_data = combined
-            
-            # Final progress
-            if progress_callback:
-                progress_callback("Complete", 100)
-                
+            print(f"Polars + Pandas combine_data execution time: {time.time() - start_time:.4f} sec")
             return True
 
         except Exception as e:
-            logging.error(f"Error combining data: {e}")
-            
-            # Report error
-            if progress_callback:
-                progress_callback("Error combining data", 100)
-                
-            messagebox.showerror("Error", "Error combining data")
+            logging.error(f"Error combining data with Polars: {e}")
+            messagebox.showerror("Error", f"Error combining data: {e}")
             return False
-
 
     def load_combined_data(self, progress_callback=None):
         """
