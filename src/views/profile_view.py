@@ -370,7 +370,7 @@ class ProfileView:
         self.visit_tree.configure(yscrollcommand=vsb.set)
         
         # Load visit log data
-        self.update_visit_log()
+        self.update_nurse_log()
 
         # Add spacing at the bottom of scrollable content
         tk.Frame(content_frame, height=30, bg=self.bg_color).pack(fill=tk.X)
@@ -468,9 +468,9 @@ class ProfileView:
         add_tooltip(assign_btn, "Assign or change the nurse responsible for this child")
         
         # Auto Log Visit button
-        auto_log_btn = create_button(button_row, "Auto Log Visit", self.auto_log_visit)
-        auto_log_btn.pack(side=tk.LEFT, padx=5)
-        add_tooltip(auto_log_btn, "Log a visit using the currently assigned nurse and current time")
+        # auto_log_btn = create_button(button_row, "Auto Log Visit", self.auto_log_nurse)
+        # auto_log_btn.pack(side=tk.LEFT, padx=5)
+        # add_tooltip(auto_log_btn, "Log a visit using the currently assigned nurse and current time")
         
         # Delete Selected Visit button
         delete_visit_btn = create_button(button_row, "Delete Selected Visit", self.delete_selected_visit)
@@ -505,7 +505,14 @@ class ProfileView:
         return frame
     
     def assign_nurse(self):
-        self.controller.assign_nurse(self.child_data, self.update_nurse_info)
+        def after_assignment(nurse_name):
+            self.update_nurse_info(nurse_name)
+            self.controller.log_nurse(self.child_data)  # Auto-log when assigned
+            self.update_nurse_log()
+            self.show_custom_dialog("Nurse Assigned", f"Nurse {nurse_name} assigned and logged.", "info")
+
+        self.controller.assign_nurse(self.child_data, after_assignment)
+
 
     def update_nurse_info(self, nurse_name):
         if nurse_name.startswith("Name: "):
@@ -526,7 +533,7 @@ class ProfileView:
     def get_nurse_info_text(self):
         return self.nurse_info_text
 
-    def update_visit_log(self):
+    def update_nurse_log(self):
         path = "nurse_log.xlsx"
         if not os.path.exists(path):
             return
@@ -544,13 +551,13 @@ class ProfileView:
         for _, row in filtered.iterrows():
             self.visit_tree.insert("", "end", values=(row["Nurse_Name"], row["Visit_Time"]))
 
-    def auto_log_visit(self):
+    def auto_log_nurse(self):
         nurse_name = self.child_data.get("Assigned_Nurse")
         if pd.isna(nurse_name) or not nurse_name or nurse_name.lower() in ["none", "n/a", "nan"]:
             self.show_custom_dialog("Error", "Please assign a nurse before logging a visit.", "error")
             return
-        self.controller.log_nurse_visit(self.child_data)
-        self.update_visit_log()
+        self.controller.log_nurse(self.child_data)
+        self.update_nurse_log()
         self.show_custom_dialog("Success", f"Visit logged for nurse {nurse_name}.", "info")
 
     def show_custom_dialog(self, title, message, dialog_type="info"):
@@ -631,19 +638,19 @@ class ProfileView:
         # Wait for the dialog to be closed
         dialog.wait_window()
 
-    def manual_log_visit(self):
-        nurse_name = simpledialog.askstring("Manual Log", "Enter Nurse Name:")
-        if not nurse_name:
-            return
-        time_str = simpledialog.askstring("Manual Log", "Enter Visit Time (YYYY-MM-DD HH:MM:SS):")
-        try:
-            datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S")
-        except ValueError:
-            self.show_custom_dialog("Error", "Invalid time format.", "error")
-            return
-        self.controller.log_nurse_visit(self.child_data, nurse_name.strip(), time_str)
-        self.update_visit_log()
-        self.show_custom_dialog("Success", f"Visit logged for nurse {nurse_name}.", "info")
+    # def manual_log_nurse(self):
+    #     nurse_name = simpledialog.askstring("Manual Log", "Enter Nurse Name:")
+    #     if not nurse_name:
+    #         return
+    #     time_str = simpledialog.askstring("Manual Log", "Enter Visit Time (YYYY-MM-DD HH:MM:SS):")
+    #     try:
+    #         datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S")
+    #     except ValueError:
+    #         self.show_custom_dialog("Error", "Invalid time format.", "error")
+    #         return
+    #     self.controller.log_nurse(self.child_data, nurse_name.strip(), time_str)
+    #     self.update_nurse_log()
+    #     self.show_custom_dialog("Success", f"Visit logged for nurse {nurse_name}.", "info")
 
     def delete_selected_visit(self):
         selected = self.visit_tree.selection()
@@ -754,7 +761,8 @@ class ProfileView:
             
         df = df[~match_mask]
         df.to_excel(path, index=False)
-        self.update_visit_log()
+
+        self.update_nurse_log()
         self.show_custom_dialog("Success", "Visit log deleted successfully.", "info")
 
     def load_notes(self):
