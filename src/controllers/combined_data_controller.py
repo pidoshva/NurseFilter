@@ -41,8 +41,11 @@ class CombinedDataController:
     def search_combined_names(self, query):
         logging.info(f"Searching combined names for query: {query}")
         if self.model.combined_data is not None and not self.model.combined_data.empty:
+            # Convert everything to strings and search across all columns
             results = self.model.combined_data[
-                self.model.combined_data['Child_First_Name'].str.contains(query, case=False, na=False)
+                self.model.combined_data.apply(
+                    lambda row: row.astype(str).str.contains(query, case=False, na=False).any(), axis=1
+                )
             ]
             if self.view:
                 self.view.update_table(results)
