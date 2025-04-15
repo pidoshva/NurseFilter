@@ -177,7 +177,7 @@ class ProfileController:
         if not nurse_name:
             nurse_name = child_data.get("Assigned_Nurse", "Unknown Nurse")
         if not visit_time:
-            visit_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            visit_time = datetime.now().strftime("%Y-%m-%d")
 
         visit_entry = {
             "Mother_ID": child_data.get("Mother_ID", "N/A"),
