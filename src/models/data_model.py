@@ -77,11 +77,11 @@ class DataModel:
             return False
 
         try:
-            # Convert pandas to Polars
+            # Convert to Polars
             db_df = pl.from_pandas(self.data_frames[0].copy())
             med_df = pl.from_pandas(self.data_frames[1].copy())
 
-            # Rename columns if needed
+            # Rename columns for consistency
             if "DOB" in db_df.columns:
                 db_df = db_df.rename({"DOB": "Child_Date_of_Birth"})
             if "Child_DOB" in med_df.columns:
@@ -89,25 +89,25 @@ class DataModel:
             if "Last_Name" in med_df.columns:
                 med_df = med_df.rename({"Last_Name": "Mother_Last_Name"})
 
-            # Normalize names and build Match_Key
-            for df_name, df in [("db", db_df), ("med", med_df)]:
-                df = df.with_columns([
+            # Normalize + generate Match_Key
+            def normalize(df):
+                return df.with_columns([
                     pl.col("Mother_First_Name").cast(pl.Utf8).str.to_lowercase().str.replace_all(r"\W", ""),
                     pl.col("Mother_Last_Name").cast(pl.Utf8).str.to_lowercase().str.replace_all(r"\W", ""),
-                    pl.col("Child_Date_of_Birth").cast(pl.Utf8).str.strip_chars().str.strptime(pl.Date, "%Y-%m-%d", strict=False).cast(pl.Utf8)
+                    pl.col("Child_Date_of_Birth").cast(pl.Utf8).str.strip_chars().str.strptime(pl.Date, "%Y-%m-%d", strict=False).cast(pl.Utf8),
+                ]).with_columns([
+                    (pl.col("Mother_First_Name") + "_" +
+                    pl.col("Mother_Last_Name") + "_" +
+                    pl.col("Child_Date_of_Birth")).alias("Match_Key")
                 ])
-                df = df.with_columns([
-                    (pl.col("Mother_First_Name") + "_" + pl.col("Mother_Last_Name") + "_" + pl.col("Child_Date_of_Birth")).alias("Match_Key")
-                ])
-                if df_name == "db":
-                    db_df = df
-                else:
-                    med_df = df
 
-            # Merge on Match_Key
+            db_df = normalize(db_df)
+            med_df = normalize(med_df)
+
+            # Join on Match_Key using Polars
             combined = db_df.join(med_df, on="Match_Key", how="inner", suffix="_medicaid")
 
-            # Drop duplicate columns and restore originals
+            # Drop duplicate `_medicaid` columns
             for col in ["Mother_First_Name", "Mother_Last_Name", "Child_Date_of_Birth"]:
                 if f"{col}_medicaid" in combined.columns:
                     combined = combined.drop(f"{col}_medicaid")
@@ -116,22 +116,49 @@ class DataModel:
             if "Assigned_Nurse" not in combined.columns:
                 combined = combined.with_columns(pl.lit("None").alias("Assigned_Nurse"))
 
-            # Capitalize names
+            # Capitalize child names
             for col in ["Mother_First_Name", "Mother_Last_Name", "Child_First_Name", "Child_Last_Name"]:
                 if col in combined.columns:
                     combined = combined.with_columns(pl.col(col).str.to_titlecase())
 
-            # Drop match key before saving
-            combined = combined.drop("Match_Key")
+            # Convert back to Pandas
+            combined_df = combined.drop("Match_Key").to_pandas()
 
-            # Convert to pandas and save
-            combined_df = combined.to_pandas()
+            # Detect duplicates with Pandas
+            duplicate_df = combined_df[combined_df.duplicated(
+                subset=["Mother_ID", "Child_First_Name", "Child_Last_Name"], keep=False)].copy()
+            if not duplicate_df.empty:
+                duplicate_df.to_excel("duplicate_names.xlsx", index=False)
+                self.duplicate_data = duplicate_df
+            else:
+                self.duplicate_data = pd.DataFrame()
+
+            # Detect unmatched records using hash key
+            db_df_pd = db_df.to_pandas()
+            med_df_pd = med_df.to_pandas()
+            combined_keys = set(combined_df["Mother_First_Name"].str.lower().str.replace(r'\W', '', regex=True) + "_" +
+                                combined_df["Mother_Last_Name"].str.lower().str.replace(r'\W', '', regex=True) + "_" +
+                                combined_df["Child_Date_of_Birth"])
+
+            unmatched_db = db_df_pd[~db_df_pd["Match_Key"].isin(combined_keys)].copy()
+            unmatched_db["Source"] = "Database"
+
+            unmatched_med = med_df_pd[~med_df_pd["Match_Key"].isin(combined_keys)].copy()
+            unmatched_med["Source"] = "Medicaid"
+
+            unmatched = pd.concat([unmatched_db, unmatched_med], ignore_index=True) if not unmatched_db.empty or not unmatched_med.empty else pd.DataFrame()
+            if not unmatched.empty:
+                for col in ['Mother_First_Name', 'Mother_Last_Name', 'Child_First_Name', 'Child_Last_Name']:
+                    if col in unmatched.columns:
+                        unmatched[col] = unmatched[col].astype(str).str.capitalize()
+                unmatched.to_excel("unmatched_data.xlsx", index=False)
+            self.unmatched_data = unmatched
+
+            # Save and assign
             combined_df.to_excel("combined_matched_data.xlsx", index=False)
             self.combined_data = combined_df
 
-            elapsed = time.time() - start_time
-            print(f"Polars combine_data execution time: {elapsed:.4f} seconds")
-
+            print(f"Polars + Pandas combine_data execution time: {time.time() - start_time:.4f} sec")
             return True
 
         except Exception as e:
