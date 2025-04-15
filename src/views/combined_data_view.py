@@ -80,10 +80,10 @@ class CombinedDataView:
             "First_Name": "First Name",
             "Last_Name": "Last Name", 
             "Date_of_Birth": "Date of Birth",
-            "City_db":"City_db",
+            "City_db":"City",
             "Zip":"Zip",
-            "Phone_#":"Phone_#",
-            "Street_address":"Street_address",
+            "Phone_#":"Phone #",
+            "Street_address":"Street Address",
             "Assigned_Nurse": "Assigned Nurse"
 
         }
@@ -164,10 +164,10 @@ class CombinedDataView:
                 row.get('Child_First_Name', ''),
                 row.get('Child_Last_Name', ''),
                 row.get('Child_Date_of_Birth', ''),
-                row.get('City_db',''),
-                row.get('Zip',''),
+                row.get('City',''),
+                row.get('ZIP',''),
                 row.get('Phone_#',''),
-                row.get('Street_address',''),
+                row.get('Street',''),
 
                 row.get('Assigned_Nurse', 'None')  # Ensure 'None' is displayed if no nurse
             ]

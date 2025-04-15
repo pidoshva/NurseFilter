@@ -143,9 +143,9 @@ class ProfileController:
                 ]
 
                 if not filtered.empty:
-                    y = draw_section_header("Nurse Visit Log", y - 10)
+                    y = draw_section_header("Nurse Assignment History", y - 10)
                     c.setFont("Helvetica-Bold", 10)
-                    c.drawString(1.2 * inch, y, f"{'Nurse Name':<25} {'Visit Time'}")
+                    c.drawString(1.2 * inch, y, f"{'Nurse Name':<25} {'Date Assigned'}")
                     y -= 12
                     c.setFont("Helvetica", 10)
                     for _, row in filtered.iterrows():
@@ -172,7 +172,7 @@ class ProfileController:
             self.main_controller.remove_tab(self.view.get_frame())
             self.view = None
 
-    def log_nurse_visit(self, child_data, nurse_name=None, visit_time=None):
+    def log_nurse(self, child_data, nurse_name=None, visit_time=None):
         log_file = "nurse_log.xlsx"
         if not nurse_name:
             nurse_name = child_data.get("Assigned_Nurse", "Unknown Nurse")
@@ -192,7 +192,7 @@ class ProfileController:
         else:
             df = pd.DataFrame(columns=["Visit_ID", "Mother_ID", "Child_First_Name", "Child_Last_Name", "Nurse_Name", "Visit_Time"])
 
-        # 🛠 Assign correct Visit ID (not scientific format)
+        # Assign correct Visit ID (not scientific format)
         next_id = 1 if df.empty else int(df["Visit_ID"].max()) + 1
         visit_entry["Visit_ID"] = next_id
 
@@ -201,9 +201,9 @@ class ProfileController:
 
         # Refresh view
         if self.view:
-            self.view.update_visit_log()
+            self.view.update_nurse_log()
 
-    def get_nurse_visits(self, child_data):
+    def get_nurse_log(self, child_data):
         if not os.path.exists(self.visit_log_path):
             return []
 
