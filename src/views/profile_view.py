@@ -7,6 +7,7 @@ from PIL import Image, ImageTk
 import os
 import platform
 from datetime import datetime
+import logging
 
 
 class ProfileView:
@@ -413,6 +414,54 @@ class ProfileView:
         button_row = tk.Frame(button_container, bg=self.primary_color, padx=20, pady=10)
         button_row.pack(fill=tk.X)
         
+        # Notes Section
+        notes_section = self.create_section_frame(main_content)
+        row_pos += 1
+        notes_section.grid(row=row_pos, column=0, columnspan=2, sticky="nsew", pady=(10, 10))
+        
+        notes_header = tk.Label(
+            notes_section, 
+            text="Notes", 
+            font=self.section_font, 
+            bg=self.section_bg, 
+            fg=self.text_color,
+            anchor='w'
+        )
+        notes_header.pack(fill=tk.X, pady=(10, 10), padx=15)
+        add_tooltip(notes_header, "Additional notes and observations")
+        
+        separator6 = tk.Frame(notes_section, height=2, bg=self.primary_color)
+        separator6.pack(fill=tk.X, padx=10)
+        
+        # Notes text widget with scrollbar
+        notes_frame = tk.Frame(notes_section, bg=self.section_bg, padx=15, pady=10)
+        notes_frame.pack(fill=tk.BOTH, expand=True)
+        
+        self.notes_text = tk.Text(
+            notes_frame,
+            wrap=tk.WORD,
+            font=self.label_font,
+            bg=self.bg_color,
+            fg=self.text_color,
+            height=6,
+            padx=10,
+            pady=10
+        )
+        self.notes_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        # Add scrollbar to notes text
+        notes_scrollbar = ttk.Scrollbar(notes_frame, orient="vertical", command=self.notes_text.yview)
+        notes_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.notes_text.configure(yscrollcommand=notes_scrollbar.set)
+        
+        # Load existing notes if any
+        self.load_notes()
+        
+        # Save Notes button
+        save_notes_btn = create_button(button_row, "Save Notes", self.save_notes)
+        save_notes_btn.pack(side=tk.LEFT, padx=5)
+        add_tooltip(save_notes_btn, "Save the notes for this child")
+        
         # Assign Nurse button (primary action)
         assign_btn = create_button(button_row, "Assign Nurse", self.assign_nurse)
         assign_btn.pack(side=tk.LEFT, padx=5)
@@ -422,11 +471,6 @@ class ProfileView:
         auto_log_btn = create_button(button_row, "Auto Log Visit", self.auto_log_visit)
         auto_log_btn.pack(side=tk.LEFT, padx=5)
         add_tooltip(auto_log_btn, "Log a visit using the currently assigned nurse and current time")
-        
-        # Manual Log Visit button
-        # manual_log_btn = create_button(button_row, "Manual Log Visit", self.manual_log_visit)
-        # manual_log_btn.pack(side=tk.LEFT, padx=5)
-        # add_tooltip(manual_log_btn, "Manually enter nurse name and visit time")
         
         # Delete Selected Visit button
         delete_visit_btn = create_button(button_row, "Delete Selected Visit", self.delete_selected_visit)
@@ -712,3 +756,69 @@ class ProfileView:
         df.to_excel(path, index=False)
         self.update_visit_log()
         self.show_custom_dialog("Success", "Visit log deleted successfully.", "info")
+
+    def load_notes(self):
+        """Load notes from file if they exist"""
+        try:
+            path = "notes.xlsx"
+            if os.path.exists(path):
+                df = pd.read_excel(path)
+                mother_id = str(self.child_data.get("Mother_ID", ""))
+                first = self.child_data.get("Child_First_Name", "").lower()
+                last = self.child_data.get("Child_Last_Name", "").lower()
+                
+                matching_notes = df[
+                    (df["Mother_ID"].astype(str) == mother_id) &
+                    (df["Child_First_Name"].str.lower() == first) &
+                    (df["Child_Last_Name"].str.lower() == last)
+                ]
+                
+                if not matching_notes.empty:
+                    self.notes_text.delete(1.0, tk.END)
+                    self.notes_text.insert(1.0, matching_notes.iloc[0]["Notes"])
+        except Exception as e:
+            logging.error(f"Error loading notes: {e}")
+
+    def save_notes(self):
+        """Save notes to file"""
+        try:
+            path = "notes.xlsx"
+            notes = self.notes_text.get(1.0, tk.END).strip()
+            
+            # Create DataFrame with current notes
+            new_data = pd.DataFrame([{
+                "Mother_ID": self.child_data.get("Mother_ID", ""),
+                "Child_First_Name": self.child_data.get("Child_First_Name", ""),
+                "Child_Last_Name": self.child_data.get("Child_Last_Name", ""),
+                "Notes": notes
+            }])
+            
+            if os.path.exists(path):
+                # Read existing data
+                df = pd.read_excel(path)
+                
+                # Remove any existing notes for this child
+                mother_id = str(self.child_data.get("Mother_ID", ""))
+                first = self.child_data.get("Child_First_Name", "").lower()
+                last = self.child_data.get("Child_Last_Name", "").lower()
+                
+                df = df[
+                    ~(
+                        (df["Mother_ID"].astype(str) == mother_id) &
+                        (df["Child_First_Name"].str.lower() == first) &
+                        (df["Child_Last_Name"].str.lower() == last)
+                    )
+                ]
+                
+                # Append new notes
+                df = pd.concat([df, new_data], ignore_index=True)
+            else:
+                df = new_data
+            
+            # Save to file
+            df.to_excel(path, index=False)
+            self.show_custom_dialog("Success", "Notes saved successfully.", "info")
+            
+        except Exception as e:
+            logging.error(f"Error saving notes: {e}")
+            self.show_custom_dialog("Error", f"Error saving notes: {e}", "error")
