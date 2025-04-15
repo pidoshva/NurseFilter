@@ -80,10 +80,10 @@ class CombinedDataView:
             "First_Name": "First Name",
             "Last_Name": "Last Name", 
             "Date_of_Birth": "Date of Birth",
-            "City_db":"City_db",
+            "City_db":"City",
             "Zip":"Zip",
-            "Phone_#":"Phone_#",
-            "Street_address":"Street_address",
+            "Phone_#":"Phone #",
+            "Street_address":"Street Address",
             "Assigned_Nurse": "Assigned Nurse"
 
         }
