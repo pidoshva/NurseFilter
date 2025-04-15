@@ -192,7 +192,7 @@ class ProfileController:
         else:
             df = pd.DataFrame(columns=["Visit_ID", "Mother_ID", "Child_First_Name", "Child_Last_Name", "Nurse_Name", "Visit_Time"])
 
-        # 🛠 Assign correct Visit ID (not scientific format)
+        # Assign correct Visit ID (not scientific format)
         next_id = 1 if df.empty else int(df["Visit_ID"].max()) + 1
         visit_entry["Visit_ID"] = next_id
 
