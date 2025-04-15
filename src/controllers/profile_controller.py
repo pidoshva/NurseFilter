@@ -143,9 +143,9 @@ class ProfileController:
                 ]
 
                 if not filtered.empty:
-                    y = draw_section_header("Nurse Visit Log", y - 10)
+                    y = draw_section_header("Nurse Assignment History", y - 10)
                     c.setFont("Helvetica-Bold", 10)
-                    c.drawString(1.2 * inch, y, f"{'Nurse Name':<25} {'Visit Time'}")
+                    c.drawString(1.2 * inch, y, f"{'Nurse Name':<25} {'Date Assigned'}")
                     y -= 12
                     c.setFont("Helvetica", 10)
                     for _, row in filtered.iterrows():
