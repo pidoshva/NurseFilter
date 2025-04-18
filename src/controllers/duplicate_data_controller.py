@@ -16,7 +16,7 @@ class DuplicateDataController:
         Display the duplicate data view in a new tab.
         """
         if self.model.duplicate_data is not None and not self.model.duplicate_data.empty:
-            self.view = DuplicateDataView(self.root, self, self.model.duplicate_data, self.main_controller)
+            self.view = DuplicateDataView(self.root, self, self.model.duplicate_data)
             frame = self.view.create_widgets()
             self.main_controller.add_tab(frame, "Duplicate Records")
         else:
@@ -29,3 +29,9 @@ class DuplicateDataController:
         if self.view:
             self.main_controller.remove_tab(self.view.get_frame())
             self.view = None
+
+    def display_in_excel(self):
+        """
+        View duplicate data in Excel.
+        """
+        self.main_controller.display_in_excel("duplicate_names.xlsx")
