@@ -2,11 +2,10 @@ import tkinter as tk
 from tkinter import ttk
 
 class DuplicateDataView:
-    def __init__(self, root, controller, duplicate_data, main_controller):
+    def __init__(self, root, controller, duplicate_data ):
         self.root = root
         self.controller = controller
         self.duplicate_data = duplicate_data
-        self.main_controller = main_controller
         self.view = None
 
     def get_frame(self):
@@ -29,7 +28,7 @@ class DuplicateDataView:
             self.tree.insert("", "end", values=values)
 
         tk.Button(self.view, text="View in Excel",
-                  command=lambda: self.main_controller.display_in_excel("duplicate_names.xlsx")).pack(pady=5)
+                  command=self.controller.display_in_excel).pack(pady=5)
 
         tk.Button(self.view, text="Close", command=self.controller.close_duplicate).pack(pady=10)
 

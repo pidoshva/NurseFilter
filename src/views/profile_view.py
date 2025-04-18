@@ -1,12 +1,11 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog
+from tkinter import ttk
 import pandas as pd
 from tkinter import font as tkfont
 from views.tooltip import add_tooltip
 from PIL import Image, ImageTk
 import os
 import platform
-from datetime import datetime
 import logging
 
 
@@ -637,20 +636,6 @@ class ProfileView:
         
         # Wait for the dialog to be closed
         dialog.wait_window()
-
-    # def manual_log_nurse(self):
-    #     nurse_name = simpledialog.askstring("Manual Log", "Enter Nurse Name:")
-    #     if not nurse_name:
-    #         return
-    #     time_str = simpledialog.askstring("Manual Log", "Enter Visit Time (YYYY-MM-DD HH:MM:SS):")
-    #     try:
-    #         datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S")
-    #     except ValueError:
-    #         self.show_custom_dialog("Error", "Invalid time format.", "error")
-    #         return
-    #     self.controller.log_nurse(self.child_data, nurse_name.strip(), time_str)
-    #     self.update_nurse_log()
-    #     self.show_custom_dialog("Success", f"Visit logged for nurse {nurse_name}.", "info")
 
     def delete_selected_visit(self):
         selected = self.visit_tree.selection()
