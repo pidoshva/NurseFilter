@@ -5,7 +5,6 @@ import pandas as pd
 
 from views.combined_data_view import CombinedDataView
 from views.unmatched_data_view import UnmatchedDataView
-from views.duplicate_data_view import DuplicateDataView
 from controllers.duplicate_data_controller import DuplicateDataController
 from models.data_model import DataModel
 
@@ -18,7 +17,6 @@ class CombinedDataController:
         self.model = model
         self.main_controller = main_controller
         self.view = None
-        self.duplicate_data_view = None
         self.unmatched_data_view = None
         logging.info("CombinedDataController initialized.")
 
@@ -67,30 +65,6 @@ class CombinedDataController:
         
 
     def refresh_view(self):
-        """Refresh the CombinedDataView TreeView with the latest combined data."""
-        if self.view:
-            try:
-                # Reload fresh data from Excel
-                fresh_data = self.model.updated_data()
-                
-                if fresh_data is None or fresh_data.empty:
-                    messagebox.showerror("Error", "No fresh data available to refresh the view.")
-                    return
-                
-                # Update all data sources
-                self.view.combined_data = fresh_data
-                self.view.filtered_data = fresh_data
-                
-                # Clear and update the treeview
-                self.view.clear_treeview()
-                self.view.update_treeview(fresh_data)
-                
-                logging.info("Combined data view refreshed with latest data")
-            except Exception as e:
-                logging.error(f"Error refreshing combined data view: {e}")
-                messagebox.showerror("Error", f"Failed to refresh view: {e}")
-
-    def refresh_view(self):
         if self.model.combined_data is not None:
             self.view.update_treeview(self.model.combined_data)
             logging.info("Combined data view refreshed with loaded data.")
@@ -101,7 +75,7 @@ class CombinedDataController:
         """
         logging.info("Attempting to display duplicate data.")
         controller = DuplicateDataController(self.root, self.model, self.main_controller)
-        controller.show_duplicate_data()
+        return controller.show_duplicate_data()
 
 
     def view_unmatched_data(self):
@@ -148,12 +122,6 @@ class CombinedDataController:
         if self.view:
             self.main_controller.remove_tab(self.view)
             self.view = None
-
-    def close_duplicate(self):
-        """Close the duplicate data view."""
-        if self.duplicate_data_view:
-            self.main_controller.remove_tab(self.duplicate_data_view)
-            self.duplicate_data_view = None
     
     def close_unmatched(self):
         """Close the unmatched data view."""
