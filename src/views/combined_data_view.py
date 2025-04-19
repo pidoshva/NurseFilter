@@ -217,20 +217,11 @@ class CombinedDataView:
         if not s:
             self.filtered_data = self.combined_data.copy()
         else:
-            def row_matches(r):
-                if s in str(r.get('Mother_ID','')).lower():
-                    return True
-                cname = f"{r.get('Child_First_Name','')} {r.get('Child_Last_Name','')}".lower()
-                if s in cname:
-                    return True
-                if s in str(r.get('Child_Date_of_Birth','')).lower():
-                    return True
-                if s in str(r.get('Assigned_Nurse','')).lower():
-                    return True
-                return False
-
-            self.filtered_data = self.combined_data[self.combined_data.apply(row_matches, axis=1)]
-
+            self.filtered_data = self.combined_data[
+                self.combined_data.apply(
+                    lambda row: row.astype(str).str.lower().str.contains(s, na=False).any(), axis=1
+                )
+            ]
         self.update_treeview(self.filtered_data)
 
     def sort_by_dob(self):
