@@ -18,6 +18,12 @@ The Excel Data Combiner Application is a user-friendly GUI-based tool designed t
 - **Fernet Encryption:** Encrypt sensitive data files using industry-standard Fernet encryption.
 - **PDF Reports:** Generate and export statistical reports and profiles in PDF format.
 - **Detailed Logging:** Track application activity with timestamps for operational insights.
+- **High Performance:** Optimized to handle up to 5000 families efficiently.
+- **Location-Based Features:** Enhanced ZIP code and address management for better searchability and batch assignment.
+- **Notes System:** Dedicated notes area in profile view for additional information.
+- **Duplicate Detection:** Advanced system for detecting and managing duplicate records.
+- **Automatic Nurse Assignment:** Streamlined nurse assignment process with automatic login in treeview.
+- **Simplified Profile Interface:** Removed manual buttons in favor of automated processes.
 
 ## Prerequisites
 
@@ -43,38 +49,41 @@ pip install pandas openpyxl tkinter reportlab cryptography
 ## Excel File Requirements
 
 ### Hospital Dataset Format
+
 The hospital dataset Excel file must contain the following columns with specified formats:
 
-| Column Name | Data Type | Description |
-|-------------|-----------|-------------|
-| Mother_ID | String | Unique identifier for the mother |
-| Mother_First_Name | String | Mother's first name |
-| Mother_Last_Name | String | Mother's last name |
-| Child_First_Name | String | Child's first name |
-| Child_Last_Name | String | Child's last name |
-| Child_DOB | Date (YYYY-MM-DD) | Child's date of birth |
-| Street_Address | String | Mother's street address |
-| City | String | City of residence |
-| State | String | Two-letter state code |
-| ZIP | String | 5-digit ZIP code |
-| Phone | String | Contact phone number |
-| Mobile | String | Mobile phone number |
+| Column Name       | Data Type         | Description                      |
+| ----------------- | ----------------- | -------------------------------- |
+| Mother_ID         | String            | Unique identifier for the mother |
+| Mother_First_Name | String            | Mother's first name              |
+| Mother_Last_Name  | String            | Mother's last name               |
+| Child_First_Name  | String            | Child's first name               |
+| Child_Last_Name   | String            | Child's last name                |
+| Child_DOB         | Date (YYYY-MM-DD) | Child's date of birth            |
+| Street_Address    | String            | Mother's street address          |
+| City              | String            | City of residence                |
+| State             | String            | Two-letter state code            |
+| ZIP               | String            | 5-digit ZIP code                 |
+| Phone             | String            | Contact phone number             |
+| Mobile            | String            | Mobile phone number              |
 
 ### Medicaid Dataset Format
+
 The Medicaid dataset Excel file must contain the following columns with specified formats:
 
-| Column Name | Data Type | Description |
-|-------------|-----------|-------------|
-| Mother_First_Name | String | Mother's first name |
-| Mother_Last_Name | String | Mother's last name |
-| Child_First_Name | String | Child's first name |
-| Child_Last_Name | String | Child's last name |
-| Child_DOB | Date (YYYY-MM-DD) | Child's date of birth |
-| Medicaid_ID | String | Unique Medicaid identifier |
+| Column Name         | Data Type         | Description                     |
+| ------------------- | ----------------- | ------------------------------- |
+| Mother_First_Name   | String            | Mother's first name             |
+| Mother_Last_Name    | String            | Mother's last name              |
+| Child_First_Name    | String            | Child's first name              |
+| Child_Last_Name     | String            | Child's last name               |
+| Child_DOB           | Date (YYYY-MM-DD) | Child's date of birth           |
+| Medicaid_ID         | String            | Unique Medicaid identifier      |
 | Coverage_Start_Date | Date (YYYY-MM-DD) | Start date of Medicaid coverage |
-| Coverage_End_Date | Date (YYYY-MM-DD) | End date of Medicaid coverage |
+| Coverage_End_Date   | Date (YYYY-MM-DD) | End date of Medicaid coverage   |
 
 ### Data Format Requirements
+
 - All date fields must be in YYYY-MM-DD format
 - String fields should not contain special characters except for spaces and hyphens
 - Phone numbers should be in (XXX) XXX-XXXX format
@@ -88,11 +97,13 @@ The application includes a `sheetgenerator.py` utility to create test Excel file
 ### Using the Sheet Generator
 
 1. Run the sheet generator script:
+
 ```bash
 python sheetgenerator.py
 ```
 
 2. The script will create two Excel files:
+
    - `hospital_data.xlsx`: Contains hospital dataset with random but realistic data
    - `medicaid_data.xlsx`: Contains Medicaid dataset with matching records
 
@@ -102,6 +113,7 @@ python sheetgenerator.py
    - `--output-dir PATH`: Specify output directory (default: current directory)
 
 Example usage:
+
 ```bash
 python sheetgenerator.py --rows 500 --seed 42 --output-dir ./test_data
 ```
@@ -143,6 +155,9 @@ python app.py
 - **Assign Nurses:** Assign nurses individually from profile view or in batch mode based on location.
 - **Analyze Nurse Statistics:** View detailed statistics on nurse assignments.
 - **Generate Reports:** Create statistical reports and export as PDF.
+- **Manage Notes:** Add and edit notes in the profile view for additional information.
+- **Handle Duplicates:** Review and manage duplicate records through the duplicate detection system.
+- **Batch Assign by Location:** Assign nurses to multiple children based on ZIP code, city, or state.
 
 ## Application Layout
 
@@ -177,6 +192,7 @@ Displays detailed information including:
 - **Mother's Information:** Mother ID, First Name, Last Name.
 - **Child's Information:** First Name, Last Name, Date of Birth.
 - **Contact Information:** Street Address, City, State, ZIP, Phone, and Mobile Number.
+- **Notes Section:** Dedicated area for adding and editing notes about the child.
 - **Assign Nurse:** Interface to assign a nurse to the specific child.
 - **Export to PDF:** Save profile information as a PDF document.
 - **Copy Profile Info:** Copies the profile details to the clipboard.
@@ -196,12 +212,20 @@ Shows records that appear multiple times across the datasets with detailed infor
 - **Assignments by Nurse:** Lists all nurses with their assignment counts.
 - **Clickable Nurse Names:** Display assigned children for specific nurses.
 
+## Performance Considerations
+
+- **Large Dataset Support:** Optimized to handle up to 5000 families efficiently.
+- **Batch Processing:** Efficient batch assignment of nurses based on location criteria.
+- **Search Optimization:** Enhanced search capabilities for ZIP codes and addresses.
+- **Memory Management:** Efficient handling of large datasets to prevent memory issues.
+
 ## Security Features
 
 - **Fernet Symmetric Encryption:** Industry-standard encryption for protecting sensitive data.
 - **Automatic Encryption/Decryption:** Files are automatically encrypted after use and decrypted when needed.
 - **Encryption Key Management:** Generate and manage encryption keys securely.
 - **Secure File Handling:** All sensitive data files are protected through encryption.
+- **Data Validation:** Strict validation of input data to prevent security issues.
 
 ## Logging
 
