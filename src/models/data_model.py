@@ -9,7 +9,59 @@ import polars as pl
 class DataModel:
     """
     Model for handling data logic: reading files, combining data, encryption, unmatched data, etc.
+    
     """
+    STANDARD_NAME_MAP = {
+        "Child First Name": "Child_First_Name",
+        "Child Last Name": "Child_Last_Name",
+        "First Name": "Child_First_Name",
+        "First Name.1": "Mother_First_Name",
+        "Mother First Name": "Mother_First_Name",
+        "HOH/Mother's First Name": "Mother_First_Name",
+        "Mother’s First Name": "Mother_First_Name",
+
+        "Mother Last Name": "Mother_Last_Name",
+        "HOH/Mother's Last Name": "Mother_Last_Name",
+        "Mother’s Last Name": "Mother_Last_Name",
+        "Last Name": "Mother_Last_Name",
+
+        "DOB": "Child_Date_of_Birth",
+        "Date of Birth": "Child_Date_of_Birth",
+        "Child DOB": "Child_Date_of_Birth",
+        "Child Date of Birth": "Child_Date_of_Birth",
+
+        "Mother's Date of Birth": "Mother_Date_of_Birth",
+        "Mother DOB": "Mother_Date_of_Birth",
+
+        "Telephone": "Phone Number",
+        "Phone": "Phone Number",
+        "PhoneNumber": "Phone Number",
+        "Phone Number": "Phone Number",
+        "Mobile Phone Number": "Mobile Phone",
+
+        "Town": "City",
+        "City": "City",
+        "Municipality": "City",
+
+        "Street": "Street Address",
+        "Address": "Street Address",
+
+        "State": "State",
+        "Zip": "ZIP",
+        "ZIP": "ZIP",
+
+        "County": "County",
+        "Case ID": "Case_ID",
+        "Child ID": "Child_ID",
+        "Mother's ID": "Mother_ID",
+
+        "MCO Name": "MCO_Name",
+        "LHD": "Local_Health_Department",
+        "Tobacco Use": "Tobacco_Use",
+        "First time Mom": "First_Time_Mom"
+    }
+
+    REVERSE_NAME_MAP = {v: k for k, v in STANDARD_NAME_MAP.items()}
 
     def __init__(self):
         self.data_frames = []
@@ -17,6 +69,13 @@ class DataModel:
         self.unmatched_data = None
         self.duplicate_data = None
         logging.info("DataModel initialized.")
+    def validate_required_columns(self, df, required_cols):
+        missing = [col for col in required_cols if col not in df.columns]
+        if missing:
+            messagebox.showerror("Missing Columns", f"The following required columns are missing: {missing}")
+            return False
+        return True
+
 
     # Encryption
     def is_file_encrypted(self, filepath, logging=True):
@@ -70,67 +129,60 @@ class DataModel:
             The pandas DataFrame if successful, None otherwise
         """
         try:
-            # Report initial progress
             if progress_callback:
                 progress_callback("Checking file", 10)
-                
-            # Check if the file exists
+
             if not os.path.exists(filepath):
                 if progress_callback:
                     progress_callback("File not found", 100)
                 return None
-                
-            # Check file size and handle large files
+
             file_size = os.path.getsize(filepath)
-            if file_size > 5_000_000:  # 5MB
+            if file_size > 5_000_000:
                 if progress_callback:
                     progress_callback("Reading large file", 20)
-                    
-            # Check and decrypt if needed
+
             if self.is_file_encrypted(filepath, logging=False):
                 if progress_callback:
                     progress_callback("Decrypting file", 30)
                 if not self.decrypt_file(filepath):
                     return None
-                    
-            # Report progress before reading
+
             if progress_callback:
                 progress_callback("Reading data", 40)
-                
-            # Read the Excel file
-            data = pd.read_excel(filepath, engine='openpyxl')
-            
-            # Report progress after reading
+
+            df = pd.read_excel(filepath, engine='openpyxl')
+
             if progress_callback:
                 progress_callback("Processing data", 70)
-                
-            # Process column names
-            data.columns = [c.replace(" ", "_") for c in data.columns]
-            
-            # Store the data frame along with its type
-            self.data_frames.append(data)
-            
-            # Store file type information
+
+            df.columns = [col.strip() for col in df.columns]
+            renamed_cols = {
+                col: self.STANDARD_NAME_MAP[col] for col in df.columns if col in self.STANDARD_NAME_MAP
+            }
+            df.rename(columns=renamed_cols, inplace=True)
+            df.columns = [col.replace(" ", "_") for col in df.columns]
+
+            self.data_frames.append(df)
+
             if not hasattr(self, 'file_types'):
                 self.file_types = []
             self.file_types.append(file_type or ("Database" if len(self.file_types) == 0 else "Medicaid"))
-            
-            # Final progress
+
             if progress_callback:
                 progress_callback("Completed", 100)
-                
+
             logging.info(f"Data read from {filepath} as {self.file_types[-1]} file")
-            return data
-            
+            return df
+
         except Exception as e:
             logging.error(f"Error reading '{filepath}': {e}")
-            
-            # Report error
             if progress_callback:
                 progress_callback("Error reading file", 100)
-                
             messagebox.showerror("Error", f"Error reading file")
             return None
+
+ 
 
     def combine_data(self):
         start_time = time.time()
@@ -141,18 +193,25 @@ class DataModel:
 
         try:
             # Convert to Polars
+            required = ["Mother_First_Name", "Mother_Last_Name", "Child_Date_of_Birth"]
+            if not self.validate_required_columns(self.data_frames[0], required):
+                return False
+            if not self.validate_required_columns(self.data_frames[1], required):
+                return False
             db_df = pl.from_pandas(self.data_frames[0].copy())
             med_df = pl.from_pandas(self.data_frames[1].copy())
 
             # Rename columns for consistency
-            if "DOB" in db_df.columns:
-                db_df = db_df.rename({"DOB": "Child_Date_of_Birth"})
-            if "Child_DOB" in med_df.columns:
-                med_df = med_df.rename({"Child_DOB": "Child_Date_of_Birth"})
-            if "Last_Name" in med_df.columns:
-                med_df = med_df.rename({"Last_Name": "Mother_Last_Name"})
+            # if "DOB" in db_df.columns:
+            #     db_df = db_df.rename({"DOB": "Child_Date_of_Birth"})
+            # if "Child_DOB" in med_df.columns:
+            #     med_df = med_df.rename({"Child_DOB": "Child_Date_of_Birth"})
+            # if "Last_Name" in med_df.columns:
+            #     med_df = med_df.rename({"Last_Name": "Mother_Last_Name"})
 
             # Normalize + generate Match_Key
+        
+
             def normalize(df):
                 return df.with_columns([
                     pl.col("Mother_First_Name").cast(pl.Utf8).str.to_lowercase().str.replace_all(r"\W", ""),

@@ -10,15 +10,26 @@ class DuplicateDataView:
         self.view = None
 
     def get_frame(self):
+        
+       
         return self.view
 
     def create_widgets(self):
         self.view = tk.Frame(self.root, width=900, height=500)
 
         columns = list(self.duplicate_data.columns)
-
         self.tree = ttk.Treeview(self.view, columns=columns, show='headings')
+       
         self.tree.pack(fill=tk.BOTH, expand=True)
+        scrollbar = ttk.Scrollbar(self.view, orient="vertical", command=self.tree.yview)
+        self.tree.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side='right', fill='y')
+        slidebar = ttk.Scrollbar(self.view, orient="horizontal", command = self.tree.xview)
+        self.tree.configure(xscrollcommand=slidebar.set)
+        slidebar.pack(side='bottom', fill ='x')
+        self.tree.pack(fill=tk.BOTH, expand= True)
+
+      
 
         for col in columns:
             self.tree.heading(col, text=col)
@@ -32,6 +43,7 @@ class DuplicateDataView:
                   command=lambda: self.main_controller.display_in_excel("duplicate_names.xlsx")).pack(pady=5)
 
         tk.Button(self.view, text="Close", command=self.controller.close_duplicate).pack(pady=10)
+       
 
         self.view.pack()
         return self.view

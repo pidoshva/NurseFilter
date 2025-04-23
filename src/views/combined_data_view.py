@@ -2,13 +2,42 @@ import tkinter as tk
 import pandas as pd
 import logging
 from tkinter import ttk, messagebox
-from views.tooltip import add_tooltip
+from src.views.tooltip import add_tooltip
+
 
 class CombinedDataView:
     """
     View class for displaying the combined data in a Treeview,
     plus search, sort by DOB, nurse stats, batch assign, unmatched, etc.
     """
+
+
+    COLUMN_RENAME_MAP = {
+        "Child First Name": "Child_First_Name",
+        "Child Last Name": "Child_Last_Name",
+        "Middle Name": "Child_Middle_Name",
+        "Child Date of Birth": "Child_Date_of_Birth",
+        "Mother ID": "Mother_ID",
+        "HOH/Mother's First name": "Mother_First_Name",
+        "HOH/Mother's Last Name": "Mother_Last_Name",
+        "Mother's Date of Birth": "Mother_Date_of_Birth",
+        "Phone Number": "Phone_Number",
+        "Mobile Phone Number": "Mobile_Phone",
+        "Street": "Street_Address",
+        "City": "City",
+        "State": "State",
+        "Zip": "ZIP",
+        "County": "County",
+        "Address": "Address",
+        "Case ID": "Case_ID",
+        "LHD": "Local_Health_Department",
+        "MCO Name": "MCO_Name",
+        "Tobacco Use": "Tobacco_Use",
+        "First Time Mom": "First_Time_Mom",
+        "Assigned Nurse": "Assigned_Nurse",
+        "Matched From": "Matched_From"
+    }
+
 
     def __init__(self, root, controller, combined_data, unmatched_count=0, duplicate_count=0):
         self.root = root
@@ -70,21 +99,45 @@ class CombinedDataView:
         add_tooltip(nurse_stats_button, "View statistics about nurse assignments and caseloads")
 
         # Treeview
-        columns = ("Mother_ID", "First_Name", "Last_Name", "Date_of_Birth","City_db","Zip","Phone_#","Street_address", "Assigned_Nurse")
+        columns = (
+            "Child First Name", "Child Last Name", "Middle Name", "Child Date of Birth",
+            "Mother ID", "HOH/Mother's First name", "HOH/Mother's Last Name", "Mother's Date of Birth",
+            "Phone Number", "Mobile Phone Number", "Street", "City", "State", "Zip", "County",
+            "Address",  
+            "Case ID", "LHD", "MCO Name", 
+            "Tobacco Use", "First Time Mom", 
+            "Assigned Nurse","Matched From"
+        
+        )
+       
         self.treeview = ttk.Treeview(self.combined_window, columns=columns, show='headings')
         add_tooltip(self.treeview, "Double-click on a record to view or edit a child's detailed profile")
 
         # Set column headings with proper labels
         column_headers = {
-            "Mother_ID": "Mother ID",
-            "First_Name": "First Name",
-            "Last_Name": "Last Name", 
-            "Date_of_Birth": "Date of Birth",
-            "City_db":"City",
-            "Zip":"Zip",
-            "Phone_#":"Phone #",
-            "Street_address":"Street Address",
-            "Assigned_Nurse": "Assigned Nurse"
+            "Child First Name": "Child First Name",
+            "Child Last Name": "Child Last Name",
+            "Middle Name": "Middle Name",
+            "Child Date of Birth": "Child Date of Birth",
+            "Mother ID": "Mother ID",
+            "HOH/Mother's First name": "HOH/Mother's First Name",
+            "HOH/Mother's Last Name": "HOH/Mother's Last Name",
+            "Mother's Date of Birth": "Mother's DOB",
+            "Phone Number": "Phone Number",
+            "Mobile Phone Number": "Mobile Phone",
+            "Street": "Street",
+            "City": "City",
+            "State": "State",
+            "Zip": "ZIP",
+            "County": "County",
+            "Address": "Full Address",
+            "Case ID": "Case ID",
+            "LHD": "LHD",
+            "MCO Name": "MCO Name",
+            "Tobacco Use": "Tobacco Use",
+            "First Time Mom": "First Time Mom",
+            "Assigned Nurse": "Assigned Nurse",
+            "Matched From": "Matched From"
 
         }
         
@@ -95,11 +148,18 @@ class CombinedDataView:
         scrollbar = ttk.Scrollbar(self.combined_window, orient="vertical", command=self.treeview.yview)
         self.treeview.configure(yscrollcommand=scrollbar.set)
         scrollbar.pack(side='right', fill='y')
+        slidebar = ttk.Scrollbar(self.combined_window, orient="horizontal", command = self.treeview.xview)
+        self.treeview.configure(xscrollcommand=slidebar.set)
+        slidebar.pack(side='bottom', fill ='x')
 
         self.treeview.pack(fill=tk.BOTH, expand=True)
 
         # Double-click => show child profile
         self.treeview.bind("<Double-1>", lambda e: self.controller.show_child_profile(self))
+        all_columns = list(columns)
+        for col in all_columns:
+            if col not in self.combined_data.columns:
+                self.combined_data[col] = ""
 
         # Populate
         self.update_treeview(self.filtered_data)
@@ -153,29 +213,16 @@ class CombinedDataView:
         return self.combined_window
         
     def update_treeview(self, data):
-        """Update treeview with fresh data."""
-        # Clear existing items
         self.clear_treeview()
-        
-        # Insert fresh data
         for _, row in data.iterrows():
-            values = [
-                str(row.get('Mother_ID', '')),  # Ensure Mother_ID is string
-                row.get('Child_First_Name', ''),
-                row.get('Child_Last_Name', ''),
-                row.get('Child_Date_of_Birth', ''),
-                row.get('City',''),
-                row.get('ZIP',''),
-                row.get('Phone_#',''),
-                row.get('Street',''),
+            # values = [row.get(col, "") for col in self.treeview['columns']]
+            values = [row.get(self.COLUMN_RENAME_MAP.get(col, col), "") for col in self.treeview['columns']]
 
-                row.get('Assigned_Nurse', 'None')  # Ensure 'None' is displayed if no nurse
-            ]
             self.treeview.insert('', 'end', values=values)
-        
-        # Force update
         self.treeview.update_idletasks()
         logging.info("Treeview updated with fresh data")
+
+
 
     def clear_treeview(self):
         """Clear all items from treeview"""
@@ -188,29 +235,38 @@ class CombinedDataView:
         if selection:
             try:
                 vals = self.treeview.item(selection[0])['values']
-                # Update unpacking to match actual columns (Mother_ID, First, Last, DOB, Nurse)
-                mother_id, child_first_name, child_last_name, dob, City, Zip,Phone,Street, nurse = vals
-                
-                # Locate the child's data in the combined DataFrame
-                child_data = self.controller.model.combined_data[
-                    (self.controller.model.combined_data['Mother_ID'].astype(str) == str(mother_id)) &
-                    (self.controller.model.combined_data['Child_First_Name'].str.lower() == child_first_name.lower()) &
-                    (self.controller.model.combined_data['Child_Last_Name'].str.lower() == child_last_name.lower()) &
-                    (self.controller.model.combined_data['Child_Date_of_Birth'] == dob)
-                ]
+                columns = self.treeview["columns"]
+                row_dict = dict(zip(columns, vals))
 
-                if not child_data.empty:
+       
+                mother_id = row_dict.get("Mother ID", "")
+                child_first_name = row_dict.get("Child First Name", "")
+                child_last_name = row_dict.get("Child Last Name", "")
+                dob = row_dict.get("Child Date of Birth", "")
+          
+                df = self.controller.model.combined_data
+                match = df[
+                    (df["Mother_ID"].astype(str) == str(mother_id)) &
+                    (df["Child_First_Name"].str.lower() == child_first_name.lower()) &
+                    (df["Child_Last_Name"].str.lower() == child_last_name.lower()) &
+                    (df["Child_Date_of_Birth"] == dob)
+                    ]
+
+                if not match.empty:
                     logging.info("Child data found.")
-                    return child_data.iloc[0]
+                    return match.iloc[0]
                 else:
                     logging.error("Child data not found.")
                     messagebox.showerror("Error", "Child data not found.")
                     return None
+
             except Exception as e:
                 logging.error(f"Error retrieving child data: {e}")
                 messagebox.showerror("Error", f"Error retrieving child data: {e}")
                 return None
         return None
+
+   
 
     def search_data(self):
         s = self.search_var.get().lower().strip()

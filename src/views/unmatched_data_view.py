@@ -23,7 +23,15 @@ class UnmatchedDataView:
 
         # Create Treeview widget
         self.tree = ttk.Treeview(view, columns=primary_columns, show="headings")
+        
         self.tree.pack(fill=tk.BOTH, expand=True)
+        scrollbar = ttk.Scrollbar(view, orient="vertical", command=self.tree.yview)
+        self.tree.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side='right', fill='y')
+        slidebar = ttk.Scrollbar(view, orient="horizontal", command = self.tree.xview)
+        self.tree.configure(xscrollcommand=slidebar.set)
+        slidebar.pack(side='bottom', fill ='x')
+        self.tree.pack(fill=tk.BOTH, expand= True)
 
         # Configure column headings
         for col in primary_columns:
